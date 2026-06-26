@@ -1,0 +1,3161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Défi du Burger — EPI EPS × SVT</title>
+<style>
+/* ═══ TOKENS ══════════════════════════════════════════════════ */
+:root {
+  --g:     #2D6A4F;   /* green */
+  --g2:    #52B788;   /* green light */
+  --gbg:   #D8F3DC;   /* green tint */
+  --o:     #E76F51;   /* orange */
+  --o2:    #F4A261;   /* orange light */
+  --obg:   #FFF0E6;   /* orange tint */
+  --b:     #2563EB;   /* blue */
+  --bbg:   #EFF6FF;
+  --pur:   #7C3AED;
+  --purbg: #F3EEFF;
+  --cream: #F7F4EE;
+  --sand:  #EDE0CC;
+  --ink:   #1A1A2E;
+  --mut:   #6B7280;
+  --line:  #E5E7EB;
+  --white: #FFFFFF;
+  --r:     12px;
+  --sh:    0 4px 24px rgba(0,0,0,.08);
+  --sh2:   0 2px 8px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--ink)}
+
+/* ═══ LAYOUT ══════════════════════════════════════════════════ */
+#app{display:flex;flex-direction:column;min-height:100vh}
+#topbar{
+  background:var(--g);color:#fff;
+  padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);position:sticky;top:0;z-index:100;
+}
+#topbar .logo{font-size:1.4rem;font-weight:800;letter-spacing:-0.5px;display:flex;align-items:center;gap:8px}
+#topbar .logo span{font-size:1.5rem}
+#topbar .user-info{display:flex;align-items:center;gap:10px;font-size:.82rem}
+#topbar .user-badge{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;font-weight:600}
+#topbar .btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 12px;border-radius:6px;font-size:.78rem;cursor:pointer;transition:.15s}
+#topbar .btn-logout:hover{background:rgba(255,255,255,.25)}
+
+/* SIDEBAR */
+#layout{display:flex;flex:1;min-height:0}
+#sidebar{
+  width:220px;min-width:220px;background:#fff;
+  border-right:1px solid var(--line);
+  overflow-y:auto;padding:12px 0;
+}
+#sidebar .nav-section{padding:6px 16px 2px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+#sidebar a{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 16px;font-size:.86rem;font-weight:500;color:var(--ink);
+  text-decoration:none;transition:.12s;border-radius:0;
+  border-left:3px solid transparent;
+}
+#sidebar a:hover{background:var(--gbg);color:var(--g)}
+#sidebar a.active{background:var(--gbg);color:var(--g);font-weight:700;border-left-color:var(--g)}
+#sidebar a .icon{font-size:1rem;width:20px;text-align:center}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:24px}
+.page{display:none;max-width:980px;margin:0 auto}
+.page.active{display:block}
+
+/* ═══ AUTH SCREEN ═════════════════════════════════════════════ */
+#auth-screen{
+  display:none;min-height:100vh;
+  background:linear-gradient(135deg,var(--g) 0%,#1B4332 60%,#0D2818 100%);
+  align-items:center;justify-content:center;
+}
+#auth-screen.active{display:flex}
+.auth-card{
+  background:#fff;border-radius:20px;padding:40px 44px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  width:100%;max-width:400px;
+}
+.auth-card .auth-logo{text-align:center;margin-bottom:28px}
+.auth-card .auth-logo .emoji{font-size:3rem}
+.auth-card .auth-logo h1{font-size:1.5rem;font-weight:800;color:var(--g);margin-top:8px}
+.auth-card .auth-logo p{font-size:.82rem;color:var(--mut);margin-top:4px}
+.auth-card .err{background:#fee2e2;color:#b91c1c;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:12px;display:none}
+.auth-card .err.show{display:block}
+
+/* ═══ CARDS & SECTIONS ════════════════════════════════════════ */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:18px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-h h2{font-size:1rem;font-weight:700;color:var(--g);display:flex;align-items:center;gap:8px}
+.page-title{font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.sec-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:20px 0 8px}
+
+/* ═══ FORMS ═══════════════════════════════════════════════════ */
+label{display:block;font-size:.78rem;font-weight:600;color:var(--mut);margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=number],input[type=email],input[type=password],input[type=date],select,textarea{
+  width:100%;padding:9px 12px;
+  border:1.5px solid var(--line);border-radius:8px;
+  font-size:.88rem;background:#FAFAFA;transition:border .18s;
+  font-family:inherit;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g2);background:#fff}
+textarea{resize:vertical;min-height:60px}
+.row{display:grid;gap:12px}
+.row-2{grid-template-columns:1fr 1fr}
+.row-3{grid-template-columns:1fr 1fr 1fr}
+.row-4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:640px){.row-2,.row-3,.row-4{grid-template-columns:1fr}}
+
+/* ═══ BUTTONS ═════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-g{background:var(--g);color:#fff}
+.btn-o{background:var(--o);color:#fff}
+.btn-b{background:var(--b);color:#fff}
+.btn-pur{background:var(--pur);color:#fff}
+.btn-ghost{background:transparent;border:2px solid var(--g);color:var(--g)}
+.btn-red{background:#EF4444;color:#fff}
+.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-xs{padding:3px 9px;font-size:.72rem;border-radius:5px}
+.btn-full{width:100%;justify-content:center}
+.btn-icon{background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:5px;font-size:1rem;transition:.12s}
+.btn-icon:hover{background:var(--line)}
+
+/* ═══ BADGES ══════════════════════════════════════════════════ */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-g{background:var(--gbg);color:var(--g)}
+.badge-o{background:var(--obg);color:var(--o)}
+.badge-b{background:var(--bbg);color:var(--b)}
+.badge-pur{background:var(--purbg);color:var(--pur)}
+.badge-red{background:#fee2e2;color:#b91c1c}
+
+/* ═══ TABLES ══════════════════════════════════════════════════ */
+.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+.tbl th{background:var(--g);color:#fff;padding:9px 12px;text-align:left;font-weight:600}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--gbg)}
+.tbl-compact th,.tbl-compact td{padding:6px 10px}
+
+/* ═══ FOOD / JOURNAL UI ═══════════════════════════════════════ */
+.moment-block{border-radius:10px;border:1.5px solid var(--line);margin-bottom:10px;overflow:hidden}
+.moment-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#FAFAFA;cursor:pointer}
+.moment-hd h3{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.moment-body{padding:10px 14px;display:none}
+.moment-body.open{display:block}
+.food-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:var(--gbg);border-radius:7px;margin-bottom:5px;font-size:.82rem}
+.sport-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:var(--obg);border-radius:7px;margin-bottom:5px;font-size:.82rem}
+.food-search-wrap{position:relative}
+.food-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--g2);border-radius:8px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:var(--sh)}
+.food-dropdown .fd-cat{padding:5px 12px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mut);background:#F9FAFB;border-bottom:1px solid var(--line)}
+.food-dropdown .fd-item{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;font-size:.84rem;transition:.1s}
+.food-dropdown .fd-item:hover{background:var(--gbg)}
+.food-dropdown .fd-kcal{font-size:.74rem;color:var(--mut)}
+
+/* ═══ DAY SELECTOR ════════════════════════════════════════════ */
+.day-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
+.day-chip{flex:0 0 auto;padding:7px 14px;border-radius:20px;border:2px solid var(--line);font-size:.8rem;cursor:pointer;transition:.15s;font-weight:600;white-space:nowrap;background:#fff}
+.day-chip.active{background:var(--g);color:#fff;border-color:var(--g)}
+.day-chip:hover:not(.active){border-color:var(--g2);color:var(--g)}
+
+/* ═══ BILAN BOXES ══════════════════════════════════════════════ */
+.stat-grid{display:grid;gap:12px;margin-bottom:16px}
+.stat-grid-3{grid-template-columns:repeat(3,1fr)}
+.stat-grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.stat-grid-3,.stat-grid-4{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--ink);color:#fff;border-radius:var(--r);padding:16px 14px;text-align:center}
+.stat-box .sv{font-size:1.7rem;font-weight:800}
+.stat-box .sl{font-size:.7rem;opacity:.6;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.sv-g{color:var(--g2)}
+.sv-o{color:var(--o2)}
+.sv-b{color:#93C5FD}
+.sv-pur{color:#C4B5FD}
+
+/* ═══ PROGRESS BAR ════════════════════════════════════════════ */
+.pbar-wrap{height:16px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0}
+.pbar-fill{height:100%;border-radius:99px;transition:width .5s}
+.pbar-g{background:var(--g2)}
+.pbar-o{background:var(--o)}
+.pbar-b{background:var(--b)}
+
+/* ═══ EPS SÉANCE PAGES ═══════════════════════════════════════ */
+.eleve-card{
+  background:#fff;border-radius:10px;border:2px solid var(--line);
+  padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+  transition:.15s;margin-bottom:8px;
+}
+.eleve-card:hover{border-color:var(--g2)}
+.eleve-card .ec-name{font-weight:700;font-size:.92rem}
+.eleve-card .ec-sub{font-size:.74rem;color:var(--mut)}
+.eleve-card .ec-right{display:flex;align-items:center;gap:10px}
+.counter-wrap{display:flex;align-items:center;gap:8px}
+.counter-btn{width:36px;height:36px;border-radius:50%;border:none;font-size:1.2rem;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.counter-btn.plus{background:var(--g);color:#fff}
+.counter-btn.minus{background:var(--line);color:var(--ink)}
+.counter-btn:hover{filter:brightness(1.1)}
+.counter-val{font-size:1.4rem;font-weight:800;min-width:32px;text-align:center}
+
+/* ═══ TIMER ═══════════════════════════════════════════════════ */
+.timer-display{
+  font-size:3.5rem;font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums;letter-spacing:2px;
+  color:var(--g);margin:12px 0;
+}
+.timer-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ═══ CHART ═══════════════════════════════════════════════════ */
+.chart-wrap{width:100%;overflow-x:auto}
+canvas{max-width:100%}
+
+/* ═══ TOAST ═══════════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--g);color:#fff;
+  padding:11px 18px;border-radius:10px;font-size:.84rem;font-weight:600;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(80px);opacity:0;transition:all .3s;z-index:999;
+}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.error{background:#DC2626}
+
+/* ═══ MODAL ═══════════════════════════════════════════════════ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:1.05rem;font-weight:700;margin-bottom:16px;color:var(--g)}
+
+/* ═══ FORMULA BOX ══════════════════════════════════════════════ */
+.formula-box{
+  background:linear-gradient(135deg,var(--g) 0%,#1B4332 100%);
+  color:#fff;border-radius:var(--r);padding:16px 20px;
+  text-align:center;font-size:.95rem;font-weight:700;margin-bottom:16px;
+}
+.formula-box span{color:var(--g2)}
+
+/* ═══ TABS ════════════════════════════════════════════════════ */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:18px}
+.tab-btn{padding:10px 18px;border:none;background:transparent;font-size:.84rem;font-weight:600;cursor:pointer;color:var(--mut);border-bottom:3px solid transparent;transition:.15s;font-family:inherit}
+.tab-btn.active{color:var(--g);border-bottom-color:var(--g)}
+.tab-btn:hover:not(.active){color:var(--ink)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ═══ RESPONSIVE SIDEBAR ══════════════════════════════════════ */
+@media(max-width:768px){
+  #sidebar{display:none}
+  #sidebar.open{display:block;position:fixed;inset:56px 0 0 0;z-index:90;width:100%;border-right:none;border-bottom:1px solid var(--line)}
+  #ham{display:flex}
+}
+#ham{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px}
+
+/* ═══ MISC ════════════════════════════════════════════════════ */
+.empty{color:var(--mut);font-size:.85rem;text-align:center;padding:24px}
+.tag{display:inline-block;background:var(--sand);color:var(--ink);border-radius:5px;padding:2px 8px;font-size:.74rem;font-weight:600}
+hr.sec{border:none;border-top:1px solid var(--line);margin:18px 0}
+</style>
+</head>
+<body>
+<!-- ══════════════════ AUTH SCREEN ══════════════════════════════ -->
+<div id="auth-screen" class="active">
+  <div style="width:100%;max-width:440px;padding:0 8px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:32px;color:#fff">
+      <div id="logo-secret" style="font-size:4rem;cursor:pointer;display:inline-block;user-select:none;transition:.15s">🍔</div>
+      <h1 style="font-size:1.7rem;font-weight:800;margin-top:12px;letter-spacing:-.5px">Le Défi du Burger</h1>
+      <p style="font-size:.84rem;opacity:.75;margin-top:5px">EPI EPS × SVT — Classe de 4ème</p>
+    </div>
+
+    <!-- STEP 1 : sélection rôle -->
+    <div id="auth-step1">
+      <!-- Élève : card principale -->
+      <div onclick="showElevePanel()" style="background:#fff;border-radius:16px;padding:22px 24px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);transition:.2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:2.4rem">🧑‍🎓</div>
+        <div>
+          <div style="font-weight:800;font-size:1.05rem;color:var(--ink)">Élève</div>
+          <div style="font-size:.78rem;color:var(--mut);margin-top:2px">Journal alimentaire & sportif</div>
+        </div>
+        <div style="margin-left:auto;font-size:1.2rem;color:var(--mut)">→</div>
+      </div>
+
+      <!-- Profs : 2 boutons côte à côte -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div onclick="showProfPanel('eps')" style="background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;color:#fff;transition:.2s" onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+          <div style="font-size:2rem">🏃</div>
+          <div style="font-weight:700;font-size:.88rem;margin-top:8px">Prof. EPS</div>
+        </div>
+        <div onclick="showProfPanel('svt')" style="background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;color:#fff;transition:.2s" onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+          <div style="font-size:2rem">🔬</div>
+          <div style="font-weight:700;font-size:.88rem;margin-top:8px">Prof. SVT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2a : élève -->
+    <div id="auth-eleve" style="display:none">
+      <div style="background:#fff;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <h2 style="font-size:1rem;font-weight:700;color:var(--g);margin-bottom:12px">🧑‍🎓 Connexion élève</h2>
+        <div style="background:var(--gbg);color:var(--g);border-radius:8px;padding:8px 12px;font-size:.76rem;margin-bottom:10px">
+          Identifiant : <strong>prenom.nom</strong> &nbsp;·&nbsp; Mot de passe initial : date de naissance <strong>JJMMAAAA</strong>
+        </div>
+        <div id="err-eleve" style="background:#fee2e2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.78rem;margin-bottom:8px;display:none">Identifiant ou mot de passe incorrect.</div>
+        <label style="display:block;font-size:.75rem;font-weight:600;color:var(--mut);margin-bottom:3px">Identifiant (prenom.nom)</label>
+        <input type="text" id="inp-slug" placeholder="jules.martin" autocomplete="username"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:.86rem;background:#FAFAFA;margin-bottom:2px">
+        <label style="display:block;font-size:.75rem;font-weight:600;color:var(--mut);margin-bottom:3px;margin-top:8px">Mot de passe</label>
+        <input type="password" id="inp-epass" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:.86rem;background:#FAFAFA">
+        <button onclick="doLoginEleve()" style="width:100%;padding:11px;margin-top:14px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">Connexion →</button>
+        <button onclick="backToStep1()" style="width:100%;padding:8px;margin-top:7px;background:transparent;color:var(--g);border:2px solid var(--g);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">← Retour</button>
+        <p style="margin-top:11px;font-size:.71rem;color:var(--mut);text-align:center">
+          MDP oublié ? <a href="#" onclick="notifOubli();return false" style="color:var(--g);font-weight:700">Notifier l'enseignant</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- STEP 2b : prof (EPS ou SVT) -->
+    <div id="auth-prof" style="display:none">
+      <div style="background:#fff;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <h2 id="prof-title" style="font-size:1rem;font-weight:700;color:var(--g);margin-bottom:12px">🏃 Prof. EPS</h2>
+        <div style="background:var(--gbg);color:var(--g);border-radius:8px;padding:8px 12px;font-size:.76rem;margin-bottom:10px">
+          Code initial : <strong>1999</strong> — À changer après la 1ère connexion.
+        </div>
+        <div id="err-prof" style="background:#fee2e2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.78rem;margin-bottom:8px;display:none">Code incorrect.</div>
+        <label style="display:block;font-size:.75rem;font-weight:600;color:var(--mut);margin-bottom:3px">Code d'accès</label>
+        <input type="password" id="inp-ppass" placeholder="••••••••" maxlength="20"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:.86rem;background:#FAFAFA">
+        <button onclick="doLoginProf()" style="width:100%;padding:11px;margin-top:14px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">Connexion →</button>
+        <button onclick="backToStep1()" style="width:100%;padding:8px;margin-top:7px;background:transparent;color:var(--g);border:2px solid var(--g);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">← Retour</button>
+      </div>
+    </div>
+
+    <!-- STEP 2c : admin secret -->
+    <div id="auth-admin" style="display:none">
+      <div style="background:#fff;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <h2 style="font-size:1rem;font-weight:700;color:var(--pur);margin-bottom:12px">🔐 Accès administrateur</h2>
+        <div id="err-admin" style="background:#fee2e2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.78rem;margin-bottom:8px;display:none">Code incorrect.</div>
+        <label style="display:block;font-size:.75rem;font-weight:600;color:var(--mut);margin-bottom:3px">Code administrateur</label>
+        <input type="password" id="inp-apass" placeholder="••••••••" maxlength="20"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:.86rem;background:#FAFAFA">
+        <button onclick="doLoginAdmin()" style="width:100%;padding:11px;margin-top:14px;background:var(--pur);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">Accès admin →</button>
+        <button onclick="backToStep1()" style="width:100%;padding:8px;margin-top:7px;background:transparent;color:var(--g);border:2px solid var(--g);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">← Retour</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ APP SHELL ════════════════════════════════ -->
+<div id="app" style="display:none">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="logo">
+      <span>🍔</span> Le Défi du Burger
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="ham" onclick="toggleSidebar()">☰</button>
+      <div class="user-info">
+        <span class="user-badge" id="tb-user">—</span>
+        <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="layout">
+    <!-- SIDEBAR (injected by JS per role) -->
+    <nav id="sidebar"></nav>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+      <!-- ── PAGES COMMUNES ── -->
+      <div class="page" id="p-home"></div>
+
+      <!-- ── PAGES ÉLÈVE ── -->
+      <div class="page" id="p-e-journal"></div>
+      <div class="page" id="p-e-bilan"></div>
+      <div class="page" id="p-e-tours"></div>
+
+      <!-- ── PAGES EPS ── -->
+      <div class="page" id="p-eps-classe"></div>
+      <div class="page" id="p-eps-historique"></div>
+      <div class="page" id="p-eps-conception"></div>
+      <div class="page" id="p-eps-echauffement"></div>
+      <div class="page" id="p-eps-fractionne"></div>
+      <div class="page" id="p-eps-1600"></div>
+      <div class="page" id="p-eps-20min"></div>
+      <div class="page" id="p-eps-resume"></div>
+      <div class="page" id="p-eps-bareme"></div>
+
+      <!-- ── PAGES SVT ── -->
+      <div class="page" id="p-svt-dashboard"></div>
+      <div class="page" id="p-svt-nutrition"></div>
+      <div class="page" id="p-svt-export"></div>
+      <div class="page" id="p-admin"></div>
+      <div class="page" id="p-e-mdp"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════ MODALS ═══════════════════════════════════ -->
+<div class="modal-bg" id="modal-food">
+  <div class="modal">
+    <h3 id="mf-title">Ajouter un aliment</h3>
+    <div>
+      <label>Rechercher un aliment</label>
+      <div class="food-search-wrap">
+        <input type="text" id="mf-search" placeholder="Rechercher…" oninput="foodSearch()" autocomplete="off">
+        <div class="food-dropdown" id="mf-dropdown" style="display:none"></div>
+      </div>
+      <div id="mf-selected" style="margin-top:8px;min-height:32px"></div>
+      <label>Ou saisir librement</label>
+      <input type="text" id="mf-custom" placeholder="ex : galette de riz, smoothie maison…">
+      <label>Calories estimées (modifiable)</label>
+      <input type="number" id="mf-kcal" placeholder="ex : 150" min="0">
+      <p id="mf-hint" style="font-size:.74rem;color:var(--g);margin-top:4px;min-height:16px"></p>
+      <label>Quantité</label>
+      <select id="mf-qty">
+        <option value="0.5">½ portion</option>
+        <option value="1" selected>1 portion</option>
+        <option value="1.5">1,5 portion</option>
+        <option value="2">2 portions</option>
+        <option value="3">3 portions</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-g" style="flex:1" onclick="confirmFood()">✓ Ajouter</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-food')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-sport">
+  <div class="modal">
+    <h3>Ajouter une activité sportive</h3>
+    <label>Sport / activité</label>
+    <select id="ms-sport" style="margin-bottom:6px">
+      <option value="">— Choisir —</option>
+    </select>
+    <label>Ou saisir librement</label>
+    <input type="text" id="ms-custom" placeholder="ex : skateboard, danse…">
+    <label>Durée (minutes)</label>
+    <input type="number" id="ms-duree" placeholder="ex : 45" min="5" max="300">
+    <label>Intensité (si sport libre)</label>
+    <select id="ms-intensite">
+      <option value="3.5">Légère (marche, yoga…)</option>
+      <option value="6" selected>Modérée (vélo, natation…)</option>
+      <option value="9">Intense (course, foot, boxe…)</option>
+    </select>
+    <p id="ms-hint" style="font-size:.74rem;color:var(--o);margin-top:6px;min-height:16px"></p>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-o" style="flex:1" onclick="confirmSport()">✓ Ajouter</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-sport')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-eleve">
+  <div class="modal">
+    <h3 id="me-title">Nouvel élève</h3>
+    <input type="hidden" id="me-id">
+    <div class="row row-2">
+      <div><label>Prénom</label><input type="text" id="me-prenom" placeholder="ex : Jules"></div>
+      <div><label>Nom</label><input type="text" id="me-nom" placeholder="ex : Martin"></div>
+    </div>
+    <div class="row row-2">
+      <div><label>Classe</label><input type="text" id="me-classe" placeholder="ex : 4A"></div>
+      <div><label>Poids (kg)</label><input type="number" id="me-poids" placeholder="ex : 52" min="30" max="120"></div>
+    </div>
+    <label>Email de connexion</label>
+    <input type="email" id="me-email" placeholder="jules.martin@college.fr">
+    <label>Mot de passe</label>
+    <input type="text" id="me-password" placeholder="ex : Jules2024!">
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-g" style="flex:1" onclick="saveEleve()">💾 Enregistrer</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-eleve')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+  <div class="modal-bg" id="modal-mdp-reset">
+    <div class="modal">
+      <h3 id="mdpr-title">Réinitialiser le mot de passe</h3>
+      <input type="hidden" id="mdpr-id">
+      <div id="mdpr-info" style="background:var(--gbg);color:var(--g);border-radius:8px;padding:9px 12px;font-size:.78rem;margin-bottom:12px"></div>
+      <label>Nouveau mot de passe (laisser vide = date de naissance)</label>
+      <input type="text" id="mdpr-pass" placeholder="Laisser vide pour réinitialiser">
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-pur" style="flex:1" onclick="applyMdpReset()">Appliquer</button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-mdp-reset')">Annuler</button>
+      </div>
+    </div>
+  </div>
+<div id="toast"></div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  DATA.JS  — Base de données alimentaire, sportive, auth, store
+// ═══════════════════════════════════════════════════════════════
+
+// ── STORE (localStorage) ────────────────────────────────────────
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem('dfb_'+k)) ?? null; } catch { return null; } },
+  set: (k,v) => localStorage.setItem('dfb_'+k, JSON.stringify(v)),
+  del: k => localStorage.removeItem('dfb_'+k),
+};
+
+// ── AUTH ────────────────────────────────────────────────────────
+const Auth = {
+  // Comptes par défaut (sera remplacé par la liste de classe)
+  _defaultAccounts: [
+    { id:'eps1',   email:'eps@college.fr',   password:'EPS2024!',  role:'eps',   nom:'Prof. EPS',       classe:'4A' },
+    { id:'svt1',   email:'svt@college.fr',   password:'SVT2024!',  role:'svt',   nom:'Prof. SVT',       classe:'4A' },
+  ],
+
+  getAccounts() {
+    return DB.get('accounts') || this._defaultAccounts;
+  },
+  saveAccounts(accounts) { DB.set('accounts', accounts); },
+
+  login(email, password) {
+    const accounts = this.getAccounts();
+    const user = accounts.find(a => a.email.toLowerCase() === email.toLowerCase() && a.password === password);
+    if (!user) return null;
+    const session = { ...user, loginAt: Date.now() };
+    DB.set('session', session);
+    return session;
+  },
+
+  logout() { DB.del('session'); },
+
+  current() { return DB.get('session'); },
+
+  isEPS() { const u = this.current(); return u && u.role === 'eps'; },
+  isSVT() { const u = this.current(); return u && u.role === 'svt'; },
+  isEleve() { const u = this.current(); return u && u.role === 'eleve'; },
+};
+
+// ── CLASSE MANAGER ──────────────────────────────────────────────
+const Classe = {
+  getEleves() { return DB.get('eleves') || []; },
+
+  addEleve(eleve) {
+    const list = this.getEleves();
+    const id = 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+    const obj = { id, role:'eleve', ...eleve };
+    list.push(obj);
+    DB.set('eleves', list);
+    // Ajouter au compte auth
+    const accounts = Auth.getAccounts();
+    accounts.push({ id, email: eleve.email, password: eleve.password, role:'eleve', nom: eleve.prenom + ' ' + eleve.nom, prenom: eleve.prenom, nomFamille: eleve.nom, classe: eleve.classe, poids: eleve.poids });
+    Auth.saveAccounts(accounts);
+    return obj;
+  },
+
+  updateEleve(id, data) {
+    const list = this.getEleves().map(e => e.id === id ? { ...e, ...data } : e);
+    DB.set('eleves', list);
+    const accounts = Auth.getAccounts().map(a => a.id === id ? { ...a, ...data } : a);
+    Auth.saveAccounts(accounts);
+  },
+
+  deleteEleve(id) {
+    DB.set('eleves', this.getEleves().filter(e => e.id !== id));
+    Auth.saveAccounts(Auth.getAccounts().filter(a => a.id !== id));
+  },
+
+  getById(id) { return this.getEleves().find(e => e.id === id); },
+};
+
+// ── FOOD DATABASE ───────────────────────────────────────────────
+const FOODS = [
+  // ─ FAST-FOOD & BURGERS ─
+  {cat:'🍔 Fast-food',n:'Burger simple',k:250},
+  {cat:'🍔 Fast-food',n:'Cheeseburger',k:300},
+  {cat:'🍔 Fast-food',n:'Double burger',k:500},
+  {cat:'🍔 Fast-food',n:'Grand burger / Whopper',k:540},
+  {cat:'🍔 Fast-food',n:'Bacon burger',k:560},
+  {cat:'🍔 Fast-food',n:'Burger végétarien',k:380},
+  {cat:'🍔 Fast-food',n:'Burger maison',k:480},
+  {cat:'🍔 Fast-food',n:'Fish burger',k:390},
+  {cat:'🍔 Fast-food',n:'Bagel burger',k:500},
+  {cat:'🍔 Fast-food',n:'Nuggets 6 pcs',k:270},
+  {cat:'🍔 Fast-food',n:'Nuggets 9 pcs',k:400},
+  {cat:'🍔 Fast-food',n:'Nuggets 20 pcs',k:880},
+  {cat:'🍔 Fast-food',n:'Chicken tenders 3 pcs',k:310},
+  {cat:'🍔 Fast-food',n:'Wrap poulet grillé',k:430},
+  {cat:'🍔 Fast-food',n:'Petites frites',k:230},
+  {cat:'🍔 Fast-food',n:'Grandes frites',k:470},
+  {cat:'🍔 Fast-food',n:'Potatoes / Wedges',k:320},
+  {cat:'🍔 Fast-food',n:'Onion rings',k:280},
+  {cat:'🍔 Fast-food',n:'Milkshake vanille',k:380},
+  {cat:'🍔 Fast-food',n:'Milkshake chocolat',k:420},
+  {cat:'🍔 Fast-food',n:'Milkshake fraise',k:360},
+  {cat:'🍔 Fast-food',n:'Menu burger-frites-cola',k:1000},
+  {cat:'🍔 Fast-food',n:'Menu double burger-frites-cola',k:1250},
+  {cat:'🍔 Fast-food',n:'Menu nuggets-frites-cola',k:900},
+  {cat:'🍔 Fast-food',n:'Menu chicken-frites-cola',k:900},
+  {cat:'🍔 Fast-food',n:'Happy Meal',k:600},
+  {cat:'🍔 Fast-food',n:'Sundae chocolat',k:330},
+  {cat:'🍔 Fast-food',n:'Sundae caramel',k:350},
+  {cat:'🍔 Fast-food',n:'Apple pie fast-food',k:250},
+  {cat:'🍔 Fast-food',n:'McFlurry Oréo',k:340},
+  // ─ KEBAB & TACOS ─
+  {cat:'🌯 Kebab & Tacos',n:'Kebab pain',k:750},
+  {cat:'🌯 Kebab & Tacos',n:'Kebab assiette',k:900},
+  {cat:'🌯 Kebab & Tacos',n:'Kebab + petites frites',k:1000},
+  {cat:'🌯 Kebab & Tacos',n:'Kebab + grandes frites + boisson',k:1250},
+  {cat:'🌯 Kebab & Tacos',n:'Demi-kebab',k:400},
+  {cat:'🌯 Kebab & Tacos',n:'Tacos 1 galette',k:700},
+  {cat:'🌯 Kebab & Tacos',n:'Tacos 2 galettes',k:1000},
+  {cat:'🌯 Kebab & Tacos',n:'Tacos 3 galettes',k:1300},
+  {cat:'🌯 Kebab & Tacos',n:'Wrap kebab',k:600},
+  {cat:'🌯 Kebab & Tacos',n:'Fallafel (3 pcs)',k:300},
+  {cat:'🌯 Kebab & Tacos',n:'Fallafel dans pain pita',k:500},
+  {cat:'🌯 Kebab & Tacos',n:'Shawarma poulet',k:650},
+  {cat:'🌯 Kebab & Tacos',n:'Döner assiette',k:850},
+  // ─ PIZZAS ─
+  {cat:'🍕 Pizzas',n:'Pizza margherita (1 part)',k:250},
+  {cat:'🍕 Pizzas',n:'Pizza 4 fromages (1 part)',k:330},
+  {cat:'🍕 Pizzas',n:'Pizza jambon (1 part)',k:270},
+  {cat:'🍕 Pizzas',n:'Pizza pepperoni (1 part)',k:350},
+  {cat:'🍕 Pizzas',n:'Pizza végétarienne (1 part)',k:230},
+  {cat:'🍕 Pizzas',n:'Pizza reine (1 part)',k:290},
+  {cat:'🍕 Pizzas',n:'Pizza blanche (1 part)',k:310},
+  {cat:'🍕 Pizzas',n:'Pizza entière margherita',k:750},
+  {cat:'🍕 Pizzas',n:'Pizza entière 4 fromages',k:1000},
+  {cat:'🍕 Pizzas',n:'Pizza entière jambon',k:820},
+  {cat:'🍕 Pizzas',n:'Pizza surgelée (1 part)',k:280},
+  {cat:'🍕 Pizzas',n:'Calzone',k:600},
+  // ─ SANDWICHS & PAINS ─
+  {cat:'🥪 Sandwichs',n:'Sandwich jambon-beurre',k:350},
+  {cat:'🥪 Sandwichs',n:'Sandwich jambon-fromage',k:400},
+  {cat:'🥪 Sandwichs',n:'Sandwich poulet-crudités',k:380},
+  {cat:'🥪 Sandwichs',n:'Sandwich thon-mayo',k:420},
+  {cat:'🥪 Sandwichs',n:'Sandwich mixte',k:360},
+  {cat:'🥪 Sandwichs',n:'Sandwich végétarien',k:300},
+  {cat:'🥪 Sandwichs',n:'Sandwich américain',k:450},
+  {cat:'🥪 Sandwichs',n:'Hot-dog',k:310},
+  {cat:'🥪 Sandwichs',n:'Hot-dog garni',k:410},
+  {cat:'🥪 Sandwichs',n:'Croque-monsieur',k:380},
+  {cat:'🥪 Sandwichs',n:'Croque-madame',k:430},
+  {cat:'🥪 Sandwichs',n:'Club sandwich',k:550},
+  {cat:'🥪 Sandwichs',n:'Bagel saumon-fromage frais',k:480},
+  {cat:'🥪 Sandwichs',n:'Bagel jambon',k:440},
+  {cat:'🥪 Sandwichs',n:'Wrap thon',k:380},
+  {cat:'🥪 Sandwichs',n:'Wrap jambon-crudités',k:350},
+  {cat:'🥪 Sandwichs',n:'Panini jambon-fromage',k:430},
+  {cat:'🥪 Sandwichs',n:'Panini poulet',k:400},
+  {cat:'🥪 Sandwichs',n:'Baguette tradition (entière)',k:260},
+  {cat:'🥪 Sandwichs',n:'Tartine pain+beurre',k:160},
+  {cat:'🥪 Sandwichs',n:'Toast blanc',k:80},
+  // ─ PLATS CHAUDS ─
+  {cat:'🍝 Plats chauds',n:'Pâtes bolognaise',k:500},
+  {cat:'🍝 Plats chauds',n:'Pâtes carbonara',k:620},
+  {cat:'🍝 Plats chauds',n:'Pâtes pesto',k:480},
+  {cat:'🍝 Plats chauds',n:'Pâtes tomate-mozzarella',k:420},
+  {cat:'🍝 Plats chauds',n:'Lasagnes (portion)',k:550},
+  {cat:'🍝 Plats chauds',n:'Riz + poulet grillé',k:420},
+  {cat:'🍝 Plats chauds',n:'Riz + poisson',k:380},
+  {cat:'🍝 Plats chauds',n:'Riz cantonnais',k:450},
+  {cat:'🍝 Plats chauds',n:'Riz blanc (bol)',k:200},
+  {cat:'🍝 Plats chauds',n:'Riz complet (bol)',k:215},
+  {cat:'🍝 Plats chauds',n:'Couscous poulet',k:580},
+  {cat:'🍝 Plats chauds',n:'Couscous merguez',k:650},
+  {cat:'🍝 Plats chauds',n:'Tajine poulet',k:500},
+  {cat:'🍝 Plats chauds',n:'Paëlla (portion)',k:530},
+  {cat:'🍝 Plats chauds',n:'Gratin dauphinois (portion)',k:400},
+  {cat:'🍝 Plats chauds',n:'Hachis parmentier (portion)',k:450},
+  {cat:'🍝 Plats chauds',n:'Quiche lorraine (1 part)',k:420},
+  {cat:'🍝 Plats chauds',n:'Quiche légumes (1 part)',k:330},
+  {cat:'🍝 Plats chauds',n:'Soupe de légumes (bol)',k:80},
+  {cat:'🍝 Plats chauds',n:'Soupe minestrone',k:120},
+  {cat:'🍝 Plats chauds',n:'Velouté potiron',k:150},
+  {cat:'🍝 Plats chauds',n:'Steak haché + frites',k:650},
+  {cat:'🍝 Plats chauds',n:'Steak haché seul',k:300},
+  {cat:'🍝 Plats chauds',n:'Entrecôte grillée',k:400},
+  {cat:'🍝 Plats chauds',n:'Poulet rôti (cuisse)',k:280},
+  {cat:'🍝 Plats chauds',n:'Poulet rôti (blanc)',k:200},
+  {cat:'🍝 Plats chauds',n:'Filet de saumon grillé',k:250},
+  {cat:'🍝 Plats chauds',n:'Fish & chips',k:600},
+  {cat:'🍝 Plats chauds',n:'Cabillaud vapeur',k:170},
+  {cat:'🍝 Plats chauds',n:'Omelette 2 œufs',k:180},
+  {cat:'🍝 Plats chauds',n:'Omelette fromage',k:270},
+  {cat:'🍝 Plats chauds',n:'Œuf dur',k:75},
+  {cat:'🍝 Plats chauds',n:'Tartiflette (portion)',k:550},
+  {cat:'🍝 Plats chauds',n:'Raclette (repas complet)',k:2000},
+  {cat:'🍝 Plats chauds',n:'Fondue savoyarde (portion)',k:700},
+  {cat:'🍝 Plats chauds',n:'Choucroute garnie (portion)',k:600},
+  {cat:'🍝 Plats chauds',n:'Bœuf bourguignon',k:520},
+  {cat:'🍝 Plats chauds',n:'Blanquette de veau',k:480},
+  {cat:'🍝 Plats chauds',n:'Pot-au-feu (portion)',k:350},
+  {cat:'🍝 Plats chauds',n:'Plateau-repas cantine complet',k:700},
+  {cat:'🍝 Plats chauds',n:'Menu cantine entrée+plat+dessert',k:850},
+  {cat:'🍝 Plats chauds',n:'Repas de famille (dimanche)',k:2250},
+  {cat:'🍝 Plats chauds',n:'Repas de Noël / Nouvel an',k:2500},
+  {cat:'🍝 Plats chauds',n:'Barbecue (repas)',k:1500},
+  {cat:'🍝 Plats chauds',n:'Brunch complet',k:1200},
+  // ─ CUISINE DU MONDE ─
+  {cat:'🌍 Monde',n:'Sushi (2 pcs)',k:70},
+  {cat:'🌍 Monde',n:'Maki (6 pcs)',k:200},
+  {cat:'🌍 Monde',n:'Plateau sushi 12 pcs',k:380},
+  {cat:'🌍 Monde',n:'Ramen (bol)',k:550},
+  {cat:'🌍 Monde',n:'Soupe pho',k:400},
+  {cat:'🌍 Monde',n:'Bo bun',k:480},
+  {cat:'🌍 Monde',n:'Nems (2 pcs)',k:120},
+  {cat:'🌍 Monde',n:'Spring rolls (2 pcs)',k:100},
+  {cat:'🌍 Monde',n:'Dim sum (3 pcs)',k:180},
+  {cat:'🌍 Monde',n:'Poulet tikka masala',k:450},
+  {cat:'🌍 Monde',n:'Butter chicken',k:480},
+  {cat:'🌍 Monde',n:'Naan nature',k:260},
+  {cat:'🌍 Monde',n:'Curry légumes + riz',k:430},
+  {cat:'🌍 Monde',n:'Samoussas (2 pcs)',k:200},
+  {cat:'🌍 Monde',n:'Tacos mexicains (2 pcs)',k:350},
+  {cat:'🌍 Monde',n:'Burrito poulet',k:500},
+  {cat:'🌍 Monde',n:'Nachos + fromage fondu',k:380},
+  {cat:'🌍 Monde',n:'Quesadilla',k:400},
+  {cat:'🌍 Monde',n:'Enchiladas',k:480},
+  {cat:'🌍 Monde',n:'Risotto champignons',k:480},
+  {cat:'🌍 Monde',n:'Gnocchis sauce tomate',k:420},
+  {cat:'🌍 Monde',n:'Moussaka (portion)',k:490},
+  {cat:'🌍 Monde',n:'Gyros grec',k:600},
+  {cat:'🌍 Monde',n:'Wok légumes + nouilles',k:400},
+  {cat:'🌍 Monde',n:'Pad thaï',k:520},
+  {cat:'🌍 Monde',n:'Nem cuisson vapeur (3)',k:150},
+  // ─ PETIT-DÉJEUNER ─
+  {cat:'🌅 Petit-déjeuner',n:'Tartine beurre confiture',k:180},
+  {cat:'🌅 Petit-déjeuner',n:'Tartine beurre miel',k:190},
+  {cat:'🌅 Petit-déjeuner',n:'Tartine pain complet + beurre',k:160},
+  {cat:'🌅 Petit-déjeuner',n:'Tartine Nutella',k:220},
+  {cat:'🌅 Petit-déjeuner',n:'Tartine beurre de cacahuète',k:210},
+  {cat:'🌅 Petit-déjeuner',n:'Céréales choco + lait',k:320},
+  {cat:'🌅 Petit-déjeuner',n:'Céréales muesli + lait',k:290},
+  {cat:'🌅 Petit-déjeuner',n:'Céréales corn flakes + lait',k:260},
+  {cat:'🌅 Petit-déjeuner',n:'Porridge / flocons avoine',k:240},
+  {cat:'🌅 Petit-déjeuner',n:'Granola (50g) + lait',k:280},
+  {cat:'🌅 Petit-déjeuner',n:'Pain perdu',k:310},
+  {cat:'🌅 Petit-déjeuner',n:'Croissant',k:240},
+  {cat:'🌅 Petit-déjeuner',n:'Pain au chocolat',k:280},
+  {cat:'🌅 Petit-déjeuner',n:'Pain aux raisins',k:290},
+  {cat:'🌅 Petit-déjeuner',n:'Chausson aux pommes',k:300},
+  {cat:'🌅 Petit-déjeuner',n:'Brioche (tranche)',k:120},
+  {cat:'🌅 Petit-déjeuner',n:'Muffin myrtilles',k:350},
+  {cat:'🌅 Petit-déjeuner',n:'Pancakes (2 pcs)',k:200},
+  {cat:'🌅 Petit-déjeuner',n:'Gaufre nature',k:190},
+  {cat:'🌅 Petit-déjeuner',n:'Gaufre Nutella',k:310},
+  {cat:'🌅 Petit-déjeuner',n:'Crêpe nature',k:90},
+  {cat:'🌅 Petit-déjeuner',n:'Crêpe Nutella',k:220},
+  {cat:'🌅 Petit-déjeuner',n:'Crêpe sucre-beurre',k:160},
+  {cat:'🌅 Petit-déjeuner',n:'Œuf à la coque',k:75},
+  {cat:'🌅 Petit-déjeuner',n:'Œufs brouillés (2)',k:180},
+  {cat:'🌅 Petit-déjeuner',n:'Œufs au plat (2)',k:220},
+  // ─ SALADES & LÉGUMES ─
+  {cat:'🥗 Salades & Légumes',n:'Salade verte simple',k:15},
+  {cat:'🥗 Salades & Légumes',n:'Salade composée légère',k:200},
+  {cat:'🥗 Salades & Légumes',n:'Salade niçoise',k:310},
+  {cat:'🥗 Salades & Légumes',n:'Salade caesar',k:400},
+  {cat:'🥗 Salades & Légumes',n:'Salade caesar + poulet',k:520},
+  {cat:'🥗 Salades & Légumes',n:'Salade grecque',k:250},
+  {cat:'🥗 Salades & Légumes',n:'Salade quinoa-légumes',k:320},
+  {cat:'🥗 Salades & Légumes',n:'Salade pasta froide',k:380},
+  {cat:'🥗 Salades & Légumes',n:'Carottes râpées',k:45},
+  {cat:'🥗 Salades & Légumes',n:'Avocat (½)',k:160},
+  {cat:'🥗 Salades & Légumes',n:'Avocat toast',k:280},
+  {cat:'🥗 Salades & Légumes',n:'Tomates cerises (100g)',k:20},
+  {cat:'🥗 Salades & Légumes',n:'Brocoli vapeur (100g)',k:35},
+  {cat:'🥗 Salades & Légumes',n:'Épinards sautés',k:60},
+  {cat:'🥗 Salades & Légumes',n:'Courgettes grillées',k:40},
+  {cat:'🥗 Salades & Légumes',n:'Patate douce rôtie',k:130},
+  {cat:'🥗 Salades & Légumes',n:'Pomme de terre vapeur',k:100},
+  {cat:'🥗 Salades & Légumes',n:'Légumes rôtis au four',k:120},
+  {cat:'🥗 Salades & Légumes',n:'Ratatouille (portion)',k:100},
+  {cat:'🥗 Salades & Légumes',n:'Taboulé (portion)',k:280},
+  // ─ FRUITS ─
+  {cat:'🍎 Fruits',n:'Pomme',k:80},
+  {cat:'🍎 Fruits',n:'Poire',k:85},
+  {cat:'🍎 Fruits',n:'Banane',k:90},
+  {cat:'🍎 Fruits',n:'Orange',k:60},
+  {cat:'🍎 Fruits',n:'Clémentine',k:35},
+  {cat:'🍎 Fruits',n:'Kiwi',k:42},
+  {cat:'🍎 Fruits',n:'Fraises (100g)',k:33},
+  {cat:'🍎 Fruits',n:'Framboises (100g)',k:52},
+  {cat:'🍎 Fruits',n:'Raisin (100g)',k:70},
+  {cat:'🍎 Fruits',n:'Mangue (½)',k:100},
+  {cat:'🍎 Fruits',n:'Ananas (tranche)',k:50},
+  {cat:'🍎 Fruits',n:'Melon (tranche)',k:55},
+  {cat:'🍎 Fruits',n:'Pastèque (tranche)',k:30},
+  {cat:'🍎 Fruits',n:'Pêche / nectarine',k:60},
+  {cat:'🍎 Fruits',n:'Abricot',k:40},
+  {cat:'🍎 Fruits',n:'Prunes (2 pcs)',k:45},
+  {cat:'🍎 Fruits',n:'Cerise (100g)',k:63},
+  {cat:'🍎 Fruits',n:'Salade de fruits maison',k:90},
+  {cat:'🍎 Fruits',n:'Compote pomme sans sucre',k:70},
+  {cat:'🍎 Fruits',n:'Compote industrielle',k:100},
+  {cat:'🍎 Fruits',n:'Fruits secs (30g)',k:85},
+  // ─ LAITAGES ─
+  {cat:'🥛 Laitages',n:'Yaourt nature 0%',k:50},
+  {cat:'🥛 Laitages',n:'Yaourt nature entier',k:70},
+  {cat:'🥛 Laitages',n:'Yaourt aux fruits',k:110},
+  {cat:'🥛 Laitages',n:'Yaourt à boire',k:130},
+  {cat:'🥛 Laitages',n:'Skyr nature',k:65},
+  {cat:'🥛 Laitages',n:'Fromage blanc (100g)',k:55},
+  {cat:'🥛 Laitages',n:'Crème dessert chocolat',k:140},
+  {cat:'🥛 Laitages',n:'Crème brûlée',k:250},
+  {cat:'🥛 Laitages',n:'Île flottante',k:200},
+  {cat:'🥛 Laitages',n:'Mousse au chocolat',k:200},
+  {cat:'🥛 Laitages',n:'Tiramisu (portion)',k:350},
+  {cat:'🥛 Laitages',n:'Camembert (portion)',k:85},
+  {cat:'🥛 Laitages',n:'Emmental (tranche)',k:95},
+  {cat:'🥛 Laitages',n:'Chèvre (portion)',k:80},
+  {cat:'🥛 Laitages',n:'Mozzarella (portion)',k:85},
+  {cat:'🥛 Laitages',n:'Lait demi-écrémé (25cl)',k:115},
+  {cat:'🥛 Laitages',n:'Lait entier (25cl)',k:160},
+  // ─ DESSERTS & SUCRERIES ─
+  {cat:'🍰 Desserts',n:'Gâteau au yaourt (part)',k:280},
+  {cat:'🍰 Desserts',n:'Cake moelleux (tranche)',k:250},
+  {cat:'🍰 Desserts',n:'Madeleine',k:100},
+  {cat:'🍰 Desserts',n:'Madeleine chocolat',k:115},
+  {cat:'🍰 Desserts',n:'Financier',k:130},
+  {cat:'🍰 Desserts',n:'Éclair chocolat',k:250},
+  {cat:'🍰 Desserts',n:'Choux à la crème',k:180},
+  {cat:'🍰 Desserts',n:'Tarte aux pommes (part)',k:300},
+  {cat:'🍰 Desserts',n:'Tarte aux fraises (part)',k:250},
+  {cat:'🍰 Desserts',n:'Cheesecake (part)',k:400},
+  {cat:'🍰 Desserts',n:'Brownie',k:320},
+  {cat:'🍰 Desserts',n:'Cookie chocolat',k:120},
+  {cat:'🍰 Desserts',n:'Sablé',k:80},
+  {cat:'🍰 Desserts',n:'Glace vanille (boule)',k:90},
+  {cat:'🍰 Desserts',n:'Glace chocolat (boule)',k:100},
+  {cat:'🍰 Desserts',n:'Sorbet fraise (boule)',k:60},
+  {cat:'🍰 Desserts',n:'Magnum amande',k:280},
+  {cat:'🍰 Desserts',n:'Calippo',k:95},
+  {cat:'🍰 Desserts',n:'Cornetto',k:240},
+  {cat:'🍰 Desserts',n:'Ben & Jerry\'s (100ml)',k:250},
+  // ─ SNACKS & CHOCOLAT ─
+  {cat:'🍫 Snacks',n:'Gâteau goûter chocolat',k:90},
+  {cat:'🍫 Snacks',n:'Barre chocolat noisette',k:130},
+  {cat:'🍫 Snacks',n:'Paquet friandises chocolatées',k:230},
+  {cat:'🍫 Snacks',n:'Bonbons (100g)',k:350},
+  {cat:'🍫 Snacks',n:'Chamallows (100g)',k:320},
+  {cat:'🍫 Snacks',n:'Réglisse (100g)',k:300},
+  {cat:'🍫 Snacks',n:'Carré chocolat noir (2 pcs)',k:90},
+  {cat:'🍫 Snacks',n:'½ tablette chocolat noir',k:250},
+  {cat:'🍫 Snacks',n:'½ tablette chocolat lait',k:280},
+  {cat:'🍫 Snacks',n:'Kinder Bueno',k:220},
+  {cat:'🍫 Snacks',n:'Kinder Surprise',k:110},
+  {cat:'🍫 Snacks',n:'Ferrero Rocher (1)',k:75},
+  {cat:'🍫 Snacks',n:'Snickers',k:250},
+  {cat:'🍫 Snacks',n:'Mars',k:230},
+  {cat:'🍫 Snacks',n:'Twix',k:250},
+  {cat:'🍫 Snacks',n:'Lion bar',k:200},
+  {cat:'🍫 Snacks',n:'Kit Kat (2 barres)',k:210},
+  {cat:'🍫 Snacks',n:'Bounty',k:230},
+  {cat:'🍫 Snacks',n:'Barre de céréales nature',k:90},
+  {cat:'🍫 Snacks',n:'Barre de céréales chocolat',k:130},
+  {cat:'🍫 Snacks',n:'Pom\'Potes',k:60},
+  {cat:'🍫 Snacks',n:'Prince chocolat (biscuit)',k:75},
+  {cat:'🍫 Snacks',n:'Oréo (3 pcs)',k:160},
+  {cat:'🍫 Snacks',n:'Mikado (paquet)',k:110},
+  {cat:'🍫 Snacks',n:'Petit Écolier LU',k:80},
+  {cat:'🍫 Snacks',n:'Speculoos (2 pcs)',k:100},
+  {cat:'🍫 Snacks',n:'Boudoir',k:30},
+  // ─ CHIPS & APÉRO ─
+  {cat:'🥨 Chips & Apéro',n:'Chips nature (30g)',k:160},
+  {cat:'🥨 Chips & Apéro',n:'Chips paprika (30g)',k:165},
+  {cat:'🥨 Chips & Apéro',n:'Chips maxi sachet (100g)',k:540},
+  {cat:'🥨 Chips & Apéro',n:'Pop-corn sucré (50g)',k:190},
+  {cat:'🥨 Chips & Apéro',n:'Pop-corn salé (50g)',k:180},
+  {cat:'🥨 Chips & Apéro',n:'Curly (30g)',k:150},
+  {cat:'🥨 Chips & Apéro',n:'Pringles (tube entier)',k:580},
+  {cat:'🥨 Chips & Apéro',n:'Cacahuètes salées (30g)',k:170},
+  {cat:'🥨 Chips & Apéro',n:'Amandes (30g)',k:175},
+  {cat:'🥨 Chips & Apéro',n:'Noix (30g)',k:190},
+  {cat:'🥨 Chips & Apéro',n:'Mélange apéritif (30g)',k:160},
+  {cat:'🥨 Chips & Apéro',n:'Bretzels (30g)',k:115},
+  {cat:'🥨 Chips & Apéro',n:'Crackers (5 pcs)',k:100},
+  // ─ CHARCUTERIE ─
+  {cat:'🥩 Charcuterie',n:'Jambon blanc (tranche)',k:45},
+  {cat:'🥩 Charcuterie',n:'Jambon cru / Serrano (tranche)',k:70},
+  {cat:'🥩 Charcuterie',n:'Saucisson sec (30g)',k:120},
+  {cat:'🥩 Charcuterie',n:'Chorizo (30g)',k:130},
+  {cat:'🥩 Charcuterie',n:'Salami (30g)',k:115},
+  {cat:'🥩 Charcuterie',n:'Merguez (1 pc)',k:110},
+  {cat:'🥩 Charcuterie',n:'Chipolata (1 pc)',k:90},
+  {cat:'🥩 Charcuterie',n:'Knacki (1 pc)',k:100},
+  {cat:'🥩 Charcuterie',n:'Rillettes (30g)',k:145},
+  {cat:'🥩 Charcuterie',n:'Pâté de campagne (30g)',k:110},
+  // ─ BOISSONS ─
+  {cat:'🥤 Boissons',n:'Eau plate (50cl)',k:0},
+  {cat:'🥤 Boissons',n:'Eau gazeuse',k:0},
+  {cat:'🥤 Boissons',n:'Eau aromatisée',k:40},
+  {cat:'🥤 Boissons',n:'Cola 33cl',k:150},
+  {cat:'🥤 Boissons',n:'Cola 50cl',k:225},
+  {cat:'🥤 Boissons',n:'Cola light/zéro 33cl',k:2},
+  {cat:'🥤 Boissons',n:'Limonade 33cl',k:130},
+  {cat:'🥤 Boissons',n:'Ice Tea 33cl',k:120},
+  {cat:'🥤 Boissons',n:'Orangina 33cl',k:140},
+  {cat:'🥤 Boissons',n:'Fanta 33cl',k:145},
+  {cat:'🥤 Boissons',n:'Sprite 33cl',k:135},
+  {cat:'🥤 Boissons',n:'Oasis 33cl',k:130},
+  {cat:'🥤 Boissons',n:'Red Bull 25cl',k:115},
+  {cat:'🥤 Boissons',n:'Monster 50cl',k:230},
+  {cat:'🥤 Boissons',n:'Powerade / Gatorade 50cl',k:130},
+  {cat:'🥤 Boissons',n:'Jus d\'orange frais (20cl)',k:80},
+  {cat:'🥤 Boissons',n:'Jus d\'orange industriel (20cl)',k:90},
+  {cat:'🥤 Boissons',n:'Jus de pomme (20cl)',k:90},
+  {cat:'🥤 Boissons',n:'Jus multifruits (20cl)',k:95},
+  {cat:'🥤 Boissons',n:'Nectar pêche (20cl)',k:100},
+  {cat:'🥤 Boissons',n:'Smoothie fruits rouges (25cl)',k:140},
+  {cat:'🥤 Boissons',n:'Smoothie banane-mangue (25cl)',k:160},
+  {cat:'🥤 Boissons',n:'Lait chocolaté (25cl)',k:180},
+  {cat:'🥤 Boissons',n:'Chocolat chaud (mug)',k:200},
+  {cat:'🥤 Boissons',n:'Thé nature',k:2},
+  {cat:'🥤 Boissons',n:'Thé sucré',k:40},
+  {cat:'🥤 Boissons',n:'Café nature',k:5},
+  {cat:'🥤 Boissons',n:'Café au lait',k:50},
+  {cat:'🥤 Boissons',n:'Cappuccino',k:90},
+  {cat:'🥤 Boissons',n:'Latte macchiato',k:130},
+];
+
+// ── SPORTS DATABASE ─────────────────────────────────────────────
+const SPORTS = [
+  {cat:'🏃 Course & Marche',n:'Course à pied',met:8},
+  {cat:'🏃 Course & Marche',n:'Jogging léger',met:6},
+  {cat:'🏃 Course & Marche',n:'Sprint / fractionné',met:10},
+  {cat:'🏃 Course & Marche',n:'Marche rapide',met:4.5},
+  {cat:'🏃 Course & Marche',n:'Marche',met:3.5},
+  {cat:'🏃 Course & Marche',n:'Randonnée',met:5.5},
+  {cat:'🚴 Vélo',n:'Vélo route (rapide)',met:10},
+  {cat:'🚴 Vélo',n:'Vélo loisir',met:6},
+  {cat:'🚴 Vélo',n:'VTT',met:9},
+  {cat:'🚴 Vélo',n:'Vélo elliptique',met:5},
+  {cat:'⚽ Sports collectifs',n:'Football',met:8},
+  {cat:'⚽ Sports collectifs',n:'Futsal',met:8},
+  {cat:'⚽ Sports collectifs',n:'Basketball',met:7},
+  {cat:'⚽ Sports collectifs',n:'Handball',met:7},
+  {cat:'⚽ Sports collectifs',n:'Rugby',met:8},
+  {cat:'⚽ Sports collectifs',n:'Volleyball',met:4},
+  {cat:'⚽ Sports collectifs',n:'Beach volley',met:5},
+  {cat:'⚽ Sports collectifs',n:'Hockey',met:8},
+  {cat:'⚽ Sports collectifs',n:'Baseball',met:5},
+  {cat:'🎾 Raquettes',n:'Tennis',met:7},
+  {cat:'🎾 Raquettes',n:'Tennis de table / ping-pong',met:5},
+  {cat:'🎾 Raquettes',n:'Badminton',met:6},
+  {cat:'🎾 Raquettes',n:'Squash',met:10},
+  {cat:'🎾 Raquettes',n:'Padel',met:7},
+  {cat:'🏊 Eau',n:'Natation (loisir)',met:6},
+  {cat:'🏊 Eau',n:'Natation (rapide)',met:9},
+  {cat:'🏊 Eau',n:'Surf',met:5},
+  {cat:'🏊 Eau',n:'Kayak / canoë',met:6},
+  {cat:'🏊 Eau',n:'Water-polo',met:8},
+  {cat:'🥋 Arts martiaux',n:'Judo',met:8},
+  {cat:'🥋 Arts martiaux',n:'Karaté',met:7},
+  {cat:'🥋 Arts martiaux',n:'Boxe / kick-boxing',met:10},
+  {cat:'🥋 Arts martiaux',n:'Taekwondo',met:8},
+  {cat:'🥋 Arts martiaux',n:'Lutte',met:8},
+  {cat:'💪 Fitness & Gym',n:'Musculation',met:5},
+  {cat:'💪 Fitness & Gym',n:'Crossfit',met:9},
+  {cat:'💪 Fitness & Gym',n:'Yoga',met:3},
+  {cat:'💪 Fitness & Gym',n:'Pilates',met:3.5},
+  {cat:'💪 Fitness & Gym',n:'Step',met:7},
+  {cat:'💪 Fitness & Gym',n:'Zumba',met:7},
+  {cat:'💪 Fitness & Gym',n:'Corde à sauter',met:10},
+  {cat:'💪 Fitness & Gym',n:'Trampoline',met:6},
+  {cat:'💪 Fitness & Gym',n:'Gym artistique',met:5},
+  {cat:'🛹 Glisse & Urban',n:'Skate / skateboard',met:5},
+  {cat:'🛹 Glisse & Urban',n:'Roller',met:7},
+  {cat:'🛹 Glisse & Urban',n:'Trottinette',met:4},
+  {cat:'🛹 Glisse & Urban',n:'Parkour',met:8},
+  {cat:'🛹 Glisse & Urban',n:'Ski alpin',met:7},
+  {cat:'🛹 Glisse & Urban',n:'Snowboard',met:6},
+  {cat:'🧗 Autres',n:'Escalade',met:8},
+  {cat:'🧗 Autres',n:'Danse',met:5},
+  {cat:'🧗 Autres',n:'Danse hip-hop',met:7},
+  {cat:'🧗 Autres',n:'Équitation',met:5},
+  {cat:'🧗 Autres',n:'Golf',met:4},
+  {cat:'🧗 Autres',n:'Tir à l\'arc',met:3.5},
+];
+
+// ── FOOD UTILS ──────────────────────────────────────────────────
+function estimateKcal(name) {
+  const lower = name.toLowerCase().trim();
+  const exact = FOODS.find(f => f.n.toLowerCase() === lower);
+  if (exact) return { kcal: exact.k, match: exact.n };
+  const partial = FOODS.filter(f => lower.includes(f.n.toLowerCase()) || f.n.toLowerCase().includes(lower))
+                       .sort((a,b) => b.k - a.k);
+  if (partial.length) return { kcal: partial[0].k, match: partial[0].n };
+  const kws = {
+    pizza:300, kebab:750, tacos:700, sandwich:380, salade:200, soupe:100,
+    gâteau:300, tarte:330, cake:260, muffin:340, brownie:320, éclair:250,
+    chips:160, chocolat:120, bonbon:120, glace:100, sorbet:60, crêpe:110,
+    frite:350, pâtes:480, riz:350, poulet:260, poisson:220, viande:380,
+    sushi:80, wrap:400, bagel:400, döner:700, nuggets:280, burger:280,
+    ramen:500, curry:450, tajine:500, couscous:580, risotto:480,
+    yaourt:80, fromage:90, jambon:50, saucisson:120, charcuterie:130,
+    biscuit:80, cookie:110, céréales:280, granola:230, porridge:240,
+    jus:90, smoothie:140, lait:120, boisson:120, cola:150,
+    fruit:70, légume:40, avocat:160, pomme:80, banane:90,
+    confiture:50, beurre:75, nutella:200, miel:65,
+    croissant:240, viennoiserie:270, pain:70, toast:80, brioche:120,
+    brunch:1200, barbecue:1400, fondue:700, raclette:2000,
+    kebab:750, nuggets:300, steak:350, poulet:250, saumon:240,
+  };
+  for (const [k,v] of Object.entries(kws)) {
+    if (lower.includes(k)) return { kcal: v, match: `estimation "${k}"` };
+  }
+  return { kcal: 250, match: '(inconnu — 250 kcal par défaut)' };
+}
+
+function sportKcal(sportName, dureMin, poidsKg) {
+  const sport = SPORTS.find(s => s.n === sportName);
+  const met = sport ? sport.met : 5;
+  return Math.round(met * poidsKg * dureMin / 60);
+}
+
+// ── FOOD REFERENCE TABLE (for equivalences) ─────────────────────
+const FOOD_REFS = FOODS.filter(f => f.k > 0).sort((a,b) => a.k - b.k);
+function closestFood(kcal) {
+  return FOOD_REFS.reduce((best, f) => Math.abs(f.k - kcal) < Math.abs(best.k - kcal) ? f : best, FOOD_REFS[0]);
+}
+
+// ── JOURNAL MANAGER ─────────────────────────────────────────────
+const Journal = {
+  _key(userId) { return `journal_${userId}`; },
+
+  get(userId) { return DB.get(this._key(userId)) || {}; },
+
+  // date = 'YYYY-MM-DD', moment = 'matin'|'midi'|'gouter'|'soir'
+  addEntry(userId, date, moment, entry) {
+    const j = this.get(userId);
+    if (!j[date]) j[date] = { matin:[], midi:[], gouter:[], soir:[], sport:[] };
+    if (moment === 'sport') j[date].sport.push(entry);
+    else j[date][moment].push(entry);
+    DB.set(this._key(userId), j);
+  },
+
+  removeEntry(userId, date, moment, idx) {
+    const j = this.get(userId);
+    if (j[date] && j[date][moment]) j[date][moment].splice(idx, 1);
+    DB.set(this._key(userId), j);
+  },
+
+  getDayKcal(userId, date) {
+    const j = this.get(userId);
+    const day = j[date];
+    if (!day) return { in: 0, out: 0, byMoment: {} };
+    const moments = ['matin','midi','gouter','soir'];
+    let totalIn = 0, byMoment = {};
+    moments.forEach(m => {
+      const sum = (day[m]||[]).reduce((a,e)=>a+e.kcal,0);
+      byMoment[m] = sum;
+      totalIn += sum;
+    });
+    const totalOut = (day.sport||[]).reduce((a,e)=>a+e.kcal,0);
+    return { in: totalIn, out: totalOut, byMoment };
+  },
+
+  getWeekKcal(userId, weekStart) {
+    // weekStart = 'YYYY-MM-DD' (lundi)
+    let totalIn = 0, totalOut = 0;
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + d);
+      const key = date.toISOString().slice(0,10);
+      const day = this.getDayKcal(userId, key);
+      totalIn += day.in;
+      totalOut += day.out;
+    }
+    return { in: totalIn, out: totalOut };
+  },
+};
+
+// ── SEANCES MANAGER ─────────────────────────────────────────────
+const Seances = {
+  getAll() { return DB.get('seances') || []; },
+  save(seances) { DB.set('seances', seances); },
+
+  add(seance) {
+    const list = this.getAll();
+    seance.id = 's_' + Date.now();
+    list.push(seance);
+    this.save(list);
+    return seance;
+  },
+
+  update(id, data) {
+    const list = this.getAll().map(s => s.id === id ? { ...s, ...data } : s);
+    this.save(list);
+  },
+
+  delete(id) { this.save(this.getAll().filter(s => s.id !== id)); },
+
+  getById(id) { return this.getAll().find(s => s.id === id); },
+
+  // Tours réel-time : stockés séparément pour faciliter migration Firebase
+  getTours() { return DB.get('tours_realtime') || {}; },
+  setTourEleve(seanceId, eleveId, tours) {
+    const t = this.getTours();
+    if (!t[seanceId]) t[seanceId] = {};
+    t[seanceId][eleveId] = tours;
+    DB.set('tours_realtime', t);
+  },
+  getToursEleve(seanceId, eleveId) {
+    const t = this.getTours();
+    return (t[seanceId] && t[seanceId][eleveId]) || 0;
+  },
+};
+
+// ── DATE HELPERS ────────────────────────────────────────────────
+const DateH = {
+  today() { return new Date().toISOString().slice(0,10); },
+  fmt(iso) {
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  },
+  fromFr(fr) {
+    const [d,m,y] = fr.split('/');
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  },
+  weekStart(iso) {
+    const d = new Date(iso);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().slice(0,10);
+  },
+  weekDays(start) {
+    return Array.from({length:7}, (_,i) => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      return d.toISOString().slice(0,10);
+    });
+  },
+  DAYS: ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+  DAYS_FULL: ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],
+};
+
+// ── BAREME ──────────────────────────────────────────────────────
+const Bareme = {
+  criteres: [
+    { id:'kcal_cycle',  label:'Calories dépensées (cycle)',   max:7,  repartition:'6 pts individuel + 1 pt collectif' },
+    { id:'km_cycle',    label:'Kilomètres parcourus (cycle)',  max:7,  repartition:'6 pts individuel + 1 pt collectif' },
+    { id:'projet_ecart',label:'Projet : écart prévu/réalisé', max:4,  repartition:'3 pts individuel + 1 pt collectif' },
+    { id:'observateur', label:'Rôle observateur / juge',      max:1,  repartition:'1 pt individuel' },
+    { id:'echauffement',label:'Échauffement',                 max:1,  repartition:'1 pt individuel' },
+  ],
+  total: 20,
+
+  getScores() { return DB.get('bareme_scores') || {}; },
+  setScore(eleveId, critereId, score) {
+    const s = this.getScores();
+    if (!s[eleveId]) s[eleveId] = {};
+    s[eleveId][critereId] = score;
+    DB.set('bareme_scores', s);
+  },
+  getTotal(eleveId) {
+    const s = this.getScores()[eleveId] || {};
+    return this.criteres.reduce((a,c) => a + (s[c.id]||0), 0);
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  APP.JS  — Router, Auth UI, Page renderers
+// ═══════════════════════════════════════════════════════════════
+
+// ── TOAST ──────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type === 'err' ? 'show error' : 'show';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className='', 2800);
+}
+
+// ── MODAL ──────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-bg')) e.target.classList.remove('open');
+});
+
+// ── AUTH ──────────────────────────────────────────────────────
+// doLogin removed
+
+
+function doLogout() {
+  Auth.logout();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').classList.add('active');
+}
+
+// ── BOOTSTRAP ─────────────────────────────────────────────────
+function bootApp(user) {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('tb-user').textContent = user.nom + (user.classe ? ' · ' + user.classe : '');
+  buildSidebar(user.role);
+  navigate(defaultRoute(user.role));
+}
+
+function defaultRoute(role) {
+  return role === 'eps' ? 'eps-classe' : role === 'svt' ? 'svt-dashboard' : 'e-journal';
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+const SIDEBAR_EPS = [
+  { section:'Gestion' },
+  { id:'eps-classe',     icon:'👥', label:'Liste de classe' },
+  { id:'eps-historique', icon:'📋', label:'Historique des leçons' },
+  { id:'eps-conception', icon:'✏️', label:'Concevoir une leçon' },
+  { section:'Séance en cours' },
+  { id:'eps-echauffement', icon:'🔥', label:'Échauffement' },
+  { id:'eps-fractionne',   icon:'⚡', label:'Fractionné' },
+  { id:'eps-1600',         icon:'🏟️', label:'4 Tours (1 600 m)' },
+  { id:'eps-20min',        icon:'⏱️', label:'Trottinement 20 min' },
+  { id:'eps-resume',       icon:'📊', label:'Résumé de séance' },
+  { section:'Évaluation' },
+  { id:'eps-bareme',    icon:'🏅', label:'Barème' },
+];
+
+const SIDEBAR_SVT = [
+  { section:'Données' },
+  { id:'svt-dashboard', icon:'📊', label:'Tableau de bord' },
+  { id:'svt-nutrition', icon:'🥗',  label:'Repères nutritionnels' },
+  { id:'svt-export',    icon:'📥',  label:'Export données' },
+];
+
+const SIDEBAR_ELEVE = [
+  { section:'Mon journal' },
+  { id:'e-journal', icon:'📖', label:'Journal alimentaire & sport' },
+  { id:'e-bilan',   icon:'📊', label:'Mon bilan' },
+  { section:'EPS' },
+  { id:'e-tours',   icon:'🏃', label:'Mes tours & dépense' },
+];
+
+function buildSidebar(role) {
+  const items = role === 'eps' ? SIDEBAR_EPS : role === 'svt' ? SIDEBAR_SVT : SIDEBAR_ELEVE;
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = items.map(it => {
+    if (it.section) return `<div class="nav-section">${it.section}</div>`;
+    return `<a href="#" onclick="navigate('${it.id}');return false" id="nav-${it.id}">
+      <span class="icon">${it.icon}</span> ${it.label}
+    </a>`;
+  }).join('');
+}
+
+// ── ROUTER ────────────────────────────────────────────────────
+let _currentPage = null;
+function navigate(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+  const page = document.getElementById('p-' + id);
+  if (!page) return;
+  page.classList.add('active');
+  const link = document.getElementById('nav-' + id);
+  if (link) link.classList.add('active');
+  _currentPage = id;
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+  // Render page content
+  renderPage(id);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function renderPage(id) {
+  const user = Auth.current();
+  switch(id) {
+    case 'e-journal':      renderEleveJournal(user); break;
+    case 'e-bilan':        renderEleveBilan(user); break;
+    case 'e-tours':        renderEleveTours(user); break;
+    case 'eps-classe':     renderEpsClasse(); break;
+    case 'eps-historique': renderEpsHistorique(); break;
+    case 'eps-conception': renderEpsConception(); break;
+    case 'eps-echauffement': renderEpsEchauffement(); break;
+    case 'eps-fractionne': renderEpsFractionne(); break;
+    case 'eps-1600':       renderEps1600(); break;
+    case 'eps-20min':      renderEps20min(); break;
+    case 'eps-resume':     renderEpsResume(); break;
+    case 'eps-bareme':     renderEpsBareme(); break;
+    case 'svt-dashboard':  renderSvtDashboard(); break;
+    case 'svt-nutrition':  renderSvtNutrition(); break;
+    case 'svt-export':     renderSvtExport(); break;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ÉLÈVE PAGES
+// ══════════════════════════════════════════════════════════════
+let _foodModalCtx = null; // { userId, date, moment }
+let _selectedFoodItem = null;
+
+// ── Journal Page ──────────────────────────────────────────────
+function renderEleveJournal(user) {
+  const el = document.getElementById('p-e-journal');
+  const today = DateH.today();
+  const weekStart = DateH.weekStart(today);
+  const days = DateH.weekDays(weekStart);
+
+  // Build day strip
+  const dayStrip = days.map((d, i) => {
+    const label = DateH.DAYS[i] + ' ' + DateH.fmt(d).slice(0,5);
+    return `<div class="day-chip ${d===today?'active':''}" onclick="selectJournalDay('${d}',this)">${label}</div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="page-title">📖 Journal alimentaire & sportif</div>
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <span style="font-size:.82rem;color:var(--mut)">Sélectionner un jour :</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-ghost" onclick="changeWeek(-1,'${weekStart}')">← Sem. préc.</button>
+          <button class="btn btn-sm btn-g" onclick="changeWeek(1,'${weekStart}')">Sem. suiv. →</button>
+        </div>
+      </div>
+      <div class="day-strip" id="day-strip">${dayStrip}</div>
+    </div>
+    <div id="journal-day-content"></div>
+  `;
+
+  renderJournalDay(user.id, today);
+}
+
+function selectJournalDay(date, chip) {
+  document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  renderJournalDay(Auth.current().id, date);
+}
+
+function changeWeek(dir, currentStart) {
+  const d = new Date(currentStart);
+  d.setDate(d.getDate() + dir*7);
+  const newStart = d.toISOString().slice(0,10);
+  const days = DateH.weekDays(newStart);
+  const today = DateH.today();
+
+  document.getElementById('day-strip').innerHTML = days.map((d, i) => {
+    const label = DateH.DAYS[i] + ' ' + DateH.fmt(d).slice(0,5);
+    return `<div class="day-chip ${d===today?'active':''}" onclick="selectJournalDay('${d}',this)">${label}</div>`;
+  }).join('');
+
+  document.querySelector('#main .btn-ghost').setAttribute('onclick', `changeWeek(-1,'${newStart}')`);
+  document.querySelectorAll('#main .btn-g')[0].setAttribute('onclick', `changeWeek(1,'${newStart}')`);
+
+  const target = days.includes(today) ? today : days[0];
+  renderJournalDay(Auth.current().id, target);
+}
+
+const MOMENTS = [
+  { id:'matin',  icon:'☀️', label:'Matin',   color:'--g' },
+  { id:'midi',   icon:'🍽️', label:'Midi',    color:'--o' },
+  { id:'gouter', icon:'🍫', label:'Goûter',  color:'--pur' },
+  { id:'soir',   icon:'🌙', label:'Soir',    color:'--b' },
+];
+
+function renderJournalDay(userId, date) {
+  const journal = Journal.get(userId);
+  const day = journal[date] || { matin:[], midi:[], gouter:[], soir:[], sport:[] };
+  const dayKcal = Journal.getDayKcal(userId, date);
+
+  const user = Auth.current();
+  const poids = user.poids || 60;
+
+  let html = `
+    <div class="card">
+      <div class="card-h">
+        <h2>📅 ${DateH.DAYS_FULL[new Date(date+'T12:00').getDay()===0?6:new Date(date+'T12:00').getDay()-1]} ${DateH.fmt(date)}</h2>
+      </div>
+      <div class="stat-grid stat-grid-3" style="margin-bottom:0">
+        <div class="stat-box"><div class="sv sv-o">${dayKcal.in}</div><div class="sl">Kcal ingérées</div></div>
+        <div class="stat-box"><div class="sv sv-g">${dayKcal.out}</div><div class="sl">Kcal dépensées</div></div>
+        <div class="stat-box"><div class="sv ${dayKcal.in-dayKcal.out>500?'sv-o':'sv-b'}">${dayKcal.in-dayKcal.out>=0?'+':''}${dayKcal.in-dayKcal.out}</div><div class="sl">Balance</div></div>
+      </div>
+    </div>
+
+    <!-- MOMENTS ALIMENTAIRES -->
+    ${MOMENTS.map(m => {
+      const entries = day[m.id] || [];
+      const total = entries.reduce((a,e)=>a+e.kcal,0);
+      return `
+      <div class="moment-block">
+        <div class="moment-hd" onclick="toggleMoment('${m.id}')">
+          <h3>${m.icon} ${m.label} <span class="badge badge-o" style="font-weight:700;font-size:.72rem">${total} kcal</span></h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-xs btn-g" onclick="event.stopPropagation();openFoodModal('${userId}','${date}','${m.id}')">+ Ajouter</button>
+            <span id="toggle-${m.id}" style="font-size:.8rem;color:var(--mut)">▼</span>
+          </div>
+        </div>
+        <div class="moment-body open" id="body-${m.id}">
+          ${entries.length === 0 ? '<p class="empty" style="padding:10px">Aucun aliment ajouté.</p>' :
+            entries.map((e,i) => `
+              <div class="food-row">
+                <span><strong>${e.nom}</strong> ${e.qty!=1?'×'+e.qty:''}</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="badge badge-o">${e.kcal} kcal</span>
+                  <button class="btn-icon" style="color:#ef4444" onclick="removeFood('${userId}','${date}','${m.id}',${i})">✕</button>
+                </div>
+              </div>`).join('')
+          }
+        </div>
+      </div>`;
+    }).join('')}
+
+    <!-- SPORT -->
+    <div class="card" style="margin-top:10px">
+      <div class="card-h">
+        <h2>🏅 Activité sportive</h2>
+        <button class="btn btn-sm btn-o" onclick="openSportModal('${userId}','${date}')">+ Ajouter</button>
+      </div>
+      ${(day.sport||[]).length===0 ? '<p class="empty">Aucune activité ajoutée.</p>' :
+        (day.sport||[]).map((s,i) => `
+          <div class="sport-row">
+            <span><strong>${s.nom}</strong> — ${s.duree} min</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="badge badge-o">${s.kcal} kcal</span>
+              <span class="badge badge-b">${s.duree} min</span>
+              <button class="btn-icon" style="color:#ef4444" onclick="removeSport('${userId}','${date}',${i})">✕</button>
+            </div>
+          </div>`).join('')
+      }
+    </div>
+  `;
+
+  document.getElementById('journal-day-content').innerHTML = html;
+}
+
+function toggleMoment(id) {
+  const body = document.getElementById('body-' + id);
+  const icon = document.getElementById('toggle-' + id);
+  body.classList.toggle('open');
+  icon.textContent = body.classList.contains('open') ? '▼' : '▶';
+}
+
+// ── Food modal ─────────────────────────────────────────────────
+function openFoodModal(userId, date, moment) {
+  _foodModalCtx = { userId, date, moment };
+  _selectedFoodItem = null;
+  document.getElementById('mf-title').textContent = 'Ajouter — ' + MOMENTS.find(m=>m.id===moment)?.label;
+  document.getElementById('mf-search').value = '';
+  document.getElementById('mf-custom').value = '';
+  document.getElementById('mf-kcal').value = '';
+  document.getElementById('mf-hint').textContent = '';
+  document.getElementById('mf-dropdown').style.display = 'none';
+  document.getElementById('mf-selected').innerHTML = '';
+  document.getElementById('mf-qty').value = '1';
+  openModal('modal-food');
+}
+
+function foodSearch() {
+  const q = document.getElementById('mf-search').value.toLowerCase().trim();
+  const dd = document.getElementById('mf-dropdown');
+  if (q.length < 1) { dd.style.display='none'; return; }
+
+  const results = FOODS.filter(f => f.n.toLowerCase().includes(q) || f.cat.toLowerCase().includes(q)).slice(0, 40);
+  if (!results.length) { dd.style.display='none'; return; }
+
+  // Group by category
+  const cats = {};
+  results.forEach(f => { if (!cats[f.cat]) cats[f.cat]=[]; cats[f.cat].push(f); });
+
+  dd.innerHTML = Object.entries(cats).map(([cat, items]) =>
+    `<div class="fd-cat">${cat}</div>` +
+    items.map(f => `<div class="fd-item" onclick="selectFood('${f.n.replace(/'/g,"\\'")}',${f.k})">
+      <span>${f.n}</span><span class="fd-kcal">${f.k} kcal</span>
+    </div>`).join('')
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function selectFood(name, kcal) {
+  _selectedFoodItem = { name, kcal };
+  document.getElementById('mf-search').value = name;
+  document.getElementById('mf-kcal').value   = kcal;
+  document.getElementById('mf-hint').textContent = `✓ ${name} — ${kcal} kcal / portion`;
+  document.getElementById('mf-dropdown').style.display = 'none';
+  document.getElementById('mf-selected').innerHTML = `<span class="badge badge-g">${name}</span>`;
+}
+
+document.getElementById('mf-custom').addEventListener('input', function() {
+  if (this.value.trim()) {
+    const est = estimateKcal(this.value);
+    document.getElementById('mf-kcal').value = est.kcal;
+    document.getElementById('mf-hint').textContent = `Estimation : ${est.kcal} kcal (${est.match})`;
+    _selectedFoodItem = null;
+  }
+});
+
+function confirmFood() {
+  const ctx = _foodModalCtx;
+  if (!ctx) return;
+  const qty   = parseFloat(document.getElementById('mf-qty').value) || 1;
+  let nom, kcalBase;
+
+  if (_selectedFoodItem) {
+    nom      = _selectedFoodItem.name;
+    kcalBase = parseFloat(document.getElementById('mf-kcal').value) || _selectedFoodItem.kcal;
+  } else {
+    const custom = document.getElementById('mf-custom').value.trim() || document.getElementById('mf-search').value.trim();
+    if (!custom) { toast('Indique un aliment.','err'); return; }
+    nom      = custom;
+    kcalBase = parseFloat(document.getElementById('mf-kcal').value) || estimateKcal(custom).kcal;
+  }
+
+  Journal.addEntry(ctx.userId, ctx.date, ctx.moment, { nom, qty, kcal: Math.round(kcalBase * qty) });
+  closeModal('modal-food');
+  renderJournalDay(ctx.userId, ctx.date);
+  toast('✓ Aliment ajouté !');
+  _selectedFoodItem = null;
+}
+
+function removeFood(userId, date, moment, idx) {
+  Journal.removeEntry(userId, date, moment, idx);
+  renderJournalDay(userId, date);
+}
+
+// ── Sport modal ────────────────────────────────────────────────
+let _sportCtx = null;
+
+function openSportModal(userId, date) {
+  _sportCtx = { userId, date };
+  // Populate sport select grouped by cat
+  const sel = document.getElementById('ms-sport');
+  const cats = {};
+  SPORTS.forEach(s => { if (!cats[s.cat]) cats[s.cat]=[]; cats[s.cat].push(s); });
+  sel.innerHTML = '<option value="">— Choisir —</option>' +
+    Object.entries(cats).map(([cat,items]) =>
+      `<optgroup label="${cat}">` + items.map(s=>`<option value="${s.n}">${s.n}</option>`).join('') + `</optgroup>`
+    ).join('');
+  document.getElementById('ms-custom').value  = '';
+  document.getElementById('ms-duree').value   = '';
+  document.getElementById('ms-hint').textContent = '';
+  openModal('modal-sport');
+}
+
+document.getElementById('ms-sport').addEventListener('change', function() {
+  if (this.value) {
+    const sport = SPORTS.find(s=>s.n===this.value);
+    const poids = Auth.current().poids || 60;
+    const duree = parseInt(document.getElementById('ms-duree').value)||30;
+    const kcal  = sport ? Math.round(sport.met * poids * duree / 60) : '?';
+    document.getElementById('ms-hint').textContent = `MET ${sport?.met||'?'} · ~${kcal} kcal pour ${duree} min à ${poids} kg`;
+  }
+});
+document.getElementById('ms-duree').addEventListener('input', () => {
+  document.getElementById('ms-sport').dispatchEvent(new Event('change'));
+});
+
+function confirmSport() {
+  const ctx = _sportCtx; if (!ctx) return;
+  const sportName = document.getElementById('ms-sport').value;
+  const custom    = document.getElementById('ms-custom').value.trim();
+  const nom       = sportName || custom;
+  const duree     = parseInt(document.getElementById('ms-duree').value) || 0;
+  if (!nom)   { toast('Choisis ou saisis un sport.','err'); return; }
+  if (!duree) { toast('Indique une durée.','err'); return; }
+  const poids     = Auth.current().poids || 60;
+  const met       = SPORTS.find(s=>s.n===nom)?.met || parseFloat(document.getElementById('ms-intensite').value) || 6;
+  const kcal      = Math.round(met * poids * duree / 60);
+  Journal.addEntry(ctx.userId, ctx.date, 'sport', { nom, duree, kcal });
+  closeModal('modal-sport');
+  renderJournalDay(ctx.userId, ctx.date);
+  toast('✓ Activité ajoutée !');
+}
+
+function removeSport(userId, date, idx) {
+  Journal.removeEntry(userId, date, 'sport', idx);
+  renderJournalDay(userId, date);
+}
+
+// ── Bilan élève ───────────────────────────────────────────────
+function renderEleveBilan(user) {
+  const el = document.getElementById('p-e-bilan');
+  const today = DateH.today();
+  const weekStart = DateH.weekStart(today);
+  const days = DateH.weekDays(weekStart);
+  const poids = user.poids || 60;
+
+  // Compute week totals
+  let totalIn=0, totalOut=0;
+  const dayData = days.map(d => {
+    const k = Journal.getDayKcal(user.id, d);
+    totalIn  += k.in;
+    totalOut += k.out;
+    return { date:d, in:k.in, out:k.out };
+  });
+
+  // EPS tours
+  const seances = Seances.getAll();
+  let totalTours=0, totalEpsKcal=0;
+  seances.forEach(s => {
+    const tours = Seances.getToursEleve(s.id, user.id);
+    const perim = s.perimetre || 400;
+    const distKm = tours * perim / 1000;
+    const epsKcal = Math.round(poids * distKm);
+    totalTours += tours;
+    totalEpsKcal += epsKcal;
+  });
+
+  const totalKcalOut = totalOut + totalEpsKcal;
+  const balance = totalIn - totalKcalOut;
+  const closest = closestFood(totalEpsKcal);
+
+  // Bar chart data
+  const barMax = Math.max(...dayData.map(d=>Math.max(d.in, d.out)), 1);
+
+  el.innerHTML = `
+    <div class="page-title">📊 Mon bilan de la semaine</div>
+
+    <div class="formula-box">Dépense EPS (Kcal) = <span>Poids (${poids} kg) × Distance (km)</span></div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-box"><div class="sv sv-o">${totalIn.toLocaleString('fr')}</div><div class="sl">Kcal ingérées</div></div>
+      <div class="stat-box"><div class="sv sv-g">${totalKcalOut.toLocaleString('fr')}</div><div class="sl">Kcal dépensées</div></div>
+      <div class="stat-box"><div class="sv ${balance>500?'sv-o':'sv-b'}">${balance>=0?'+':''}${balance.toLocaleString('fr')}</div><div class="sl">Balance</div></div>
+      <div class="stat-box"><div class="sv sv-pur">${totalTours}</div><div class="sl">Tours EPS</div></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:.95rem;font-weight:700;color:var(--g);margin-bottom:14px">📆 Détail par jour</h2>
+      ${dayData.map(d=>`
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:2px">
+            <span style="font-weight:600">${DateH.DAYS_FULL[new Date(d.date+'T12:00').getDay()===0?6:new Date(d.date+'T12:00').getDay()-1]}</span>
+            <span>${d.in} kcal in &nbsp;|&nbsp; ${d.out} kcal out</span>
+          </div>
+          <div style="display:flex;gap:4px">
+            <div style="flex:1">
+              <div class="pbar-wrap" style="height:10px">
+                <div class="pbar-fill pbar-o" style="width:${Math.round(d.in/barMax*100)}%"></div>
+              </div>
+            </div>
+            <div style="flex:1">
+              <div class="pbar-wrap" style="height:10px">
+                <div class="pbar-fill pbar-g" style="width:${Math.round(d.out/barMax*100)}%"></div>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <div style="display:flex;gap:16px;font-size:.74rem;margin-top:6px">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:var(--o);display:inline-block"></span> Ingérées</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:var(--g2);display:inline-block"></span> Dépensées</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:.95rem;font-weight:700;color:var(--g);margin-bottom:14px">🍔 Équivalent burger — activité EPS du cycle</h2>
+      <p style="font-size:.85rem;margin-bottom:10px">Tes <strong>${totalTours} tours</strong> en EPS représentent environ <strong>${totalEpsKcal} kcal</strong>.</p>
+      <div class="pbar-wrap">
+        <div class="pbar-fill pbar-g" style="width:${Math.min(100, Math.round(totalEpsKcal/500*100))}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--mut);margin-top:3px">
+        <span>0 kcal</span><span>500 kcal (double burger)</span>
+      </div>
+      ${closest ? `<p style="font-size:.83rem;margin-top:10px">C'est l'équivalent approximatif de : <strong>${closest.n}</strong> (${closest.k} kcal)</p>` : ''}
+    </div>
+  `;
+}
+
+// ── Tours élève ───────────────────────────────────────────────
+function renderEleveTours(user) {
+  const el = document.getElementById('p-e-tours');
+  const poids = user.poids || 60;
+  const seances = Seances.getAll();
+
+  let totalTours=0, totalKm=0, totalKcal=0;
+  const rows = seances.map(s => {
+    const tours  = Seances.getToursEleve(s.id, user.id);
+    const perim  = s.perimetre || 400;
+    const distKm = (tours * perim / 1000);
+    const kcal   = Math.round(poids * distKm);
+    totalTours += tours; totalKm += distKm; totalKcal += kcal;
+    return { s, tours, distKm, kcal };
+  }).filter(r => r.tours > 0);
+
+  el.innerHTML = `
+    <div class="page-title">🏃 Mes tours & dépense EPS</div>
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-box"><div class="sv sv-pur">${totalTours}</div><div class="sl">Tours cumulés</div></div>
+      <div class="stat-box"><div class="sv sv-b">${totalKm.toFixed(1)} km</div><div class="sl">Distance totale</div></div>
+      <div class="stat-box"><div class="sv sv-g">${totalKcal} kcal</div><div class="sl">Dépense EPS</div></div>
+    </div>
+    <div class="card">
+      <h2 style="font-size:.95rem;margin-bottom:14px">Détail par séance</h2>
+      ${rows.length === 0 ? '<p class="empty">Aucune séance enregistrée pour toi.</p>' : `
+        <table class="tbl">
+          <thead><tr><th>Date</th><th>Type</th><th>Tours</th><th>Distance</th><th>Dépense</th><th>Équivalent</th></tr></thead>
+          <tbody>${rows.map(r=>{
+            const eq = closestFood(r.kcal);
+            return `<tr>
+              <td>${r.s.date}</td>
+              <td>${r.s.typeLabel||r.s.type}</td>
+              <td><strong>${r.tours}</strong></td>
+              <td>${r.distKm.toFixed(2)} km</td>
+              <td><span class="badge badge-g">${r.kcal} kcal</span></td>
+              <td><span class="badge badge-o">${eq?.n||'?'}</span></td>
+            </tr>`;}).join('')}
+          </tbody>
+        </table>`}
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:.95rem;margin-bottom:10px">🎯 Mon objectif du cycle</h2>
+      <label>Distance cible (km)</label>
+      <input type="number" id="et-cible" placeholder="ex : 12" value="${DB.get('cible_'+user.id)||''}" min="0" step="0.5" style="margin-bottom:10px">
+      <button class="btn btn-g btn-sm" onclick="saveCible('${user.id}')">Enregistrer</button>
+      ${DB.get('cible_'+user.id) ? `
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px">
+            <span>${totalKm.toFixed(1)} km réalisés</span>
+            <span>${DB.get('cible_'+user.id)} km visés</span>
+          </div>
+          <div class="pbar-wrap">
+            <div class="pbar-fill pbar-b" style="width:${Math.min(100,Math.round(totalKm/DB.get('cible_'+user.id)*100))}%"></div>
+          </div>
+          <p style="font-size:.78rem;color:var(--mut);margin-top:4px">${Math.round(totalKm/DB.get('cible_'+user.id)*100)}% de l'objectif atteint</p>
+        </div>` : ''}
+    </div>
+  `;
+}
+
+function saveCible(userId) {
+  const v = document.getElementById('et-cible').value;
+  DB.set('cible_'+userId, parseFloat(v)||0);
+  toast('Objectif enregistré !');
+  renderEleveTours(Auth.current());
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EPS PAGES
+// ══════════════════════════════════════════════════════════════
+
+// ── Classe ────────────────────────────────────────────────────
+function renderEpsClasse() {
+  const el = document.getElementById('p-eps-classe');
+  const eleves = Classe.getEleves();
+
+  el.innerHTML = `
+    <div class="page-title">👥 Liste de classe</div>
+    <div class="card">
+      <div class="card-h">
+        <h2>Élèves enregistrés (${eleves.length})</h2>
+        <button class="btn btn-g btn-sm" onclick="openEleveModal()">+ Nouvel élève</button>
+      </div>
+      ${eleves.length===0 ? '<p class="empty">Aucun élève. Commence par en ajouter un.</p>' : `
+        <table class="tbl">
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th>Poids</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody>${eleves.map(e=>`
+            <tr>
+              <td><strong>${e.prenom}</strong></td>
+              <td>${e.nomFamille||e.nom||'—'}</td>
+              <td><span class="badge badge-b">${e.classe||'—'}</span></td>
+              <td>${e.poids||'?'} kg</td>
+              <td style="font-size:.78rem;color:var(--mut)">${e.email||'—'}</td>
+              <td>
+                <button class="btn btn-xs btn-ghost" onclick="openEleveModal('${e.id}')">✏️</button>
+                <button class="btn btn-xs btn-red" onclick="deleteEleve('${e.id}')">✕</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>
+    <div class="card">
+      <h2 style="font-size:.95rem;margin-bottom:10px">💡 Import rapide — liste classe</h2>
+      <p style="font-size:.82rem;color:var(--mut);margin-bottom:10px">Coller une liste au format : <code>Prénom;Nom;Classe;Poids;Email;MotDePasse</code> (1 élève par ligne)</p>
+      <textarea id="import-csv" placeholder="Jules;Martin;4A;52;jules.martin@college.fr;Jules2024!
+Marie;Dupont;4A;48;marie.dupont@college.fr;Marie2024!" style="font-family:monospace;font-size:.78rem"></textarea>
+      <div style="margin-top:8px">
+        <button class="btn btn-b btn-sm" onclick="importCsv()">📥 Importer</button>
+      </div>
+    </div>
+  `;
+}
+
+function openEleveModal(id=null) {
+  document.getElementById('me-id').value      = id||'';
+  document.getElementById('me-title').textContent = id ? 'Modifier l\'élève' : 'Nouvel élève';
+  if (id) {
+    const e = Classe.getById(id);
+    if (!e) return;
+    document.getElementById('me-prenom').value   = e.prenom||'';
+    document.getElementById('me-nom').value      = e.nomFamille||e.nom||'';
+    document.getElementById('me-classe').value   = e.classe||'';
+    document.getElementById('me-poids').value    = e.poids||'';
+    document.getElementById('me-email').value    = e.email||'';
+    document.getElementById('me-password').value = e.password||'';
+  } else {
+    ['me-prenom','me-nom','me-classe','me-poids','me-email','me-password'].forEach(i=>document.getElementById(i).value='');
+  }
+  openModal('modal-eleve');
+}
+
+function saveEleve() {
+  const id      = document.getElementById('me-id').value;
+  const prenom  = document.getElementById('me-prenom').value.trim();
+  const nom     = document.getElementById('me-nom').value.trim();
+  const classe  = document.getElementById('me-classe').value.trim();
+  const poids   = parseFloat(document.getElementById('me-poids').value)||60;
+  const email   = document.getElementById('me-email').value.trim();
+  const password= document.getElementById('me-password').value.trim();
+  if (!prenom||!email||!password) { toast('Prénom, email et mot de passe requis.','err'); return; }
+  if (id) {
+    Classe.updateEleve(id, { prenom, nomFamille:nom, classe, poids, email, password, nom:prenom+' '+nom });
+    toast('Élève modifié !');
+  } else {
+    Classe.addEleve({ prenom, nom, classe, poids, email, password });
+    toast('Élève ajouté !');
+  }
+  closeModal('modal-eleve');
+  renderEpsClasse();
+}
+
+function deleteEleve(id) {
+  if (!confirm('Supprimer cet élève ?')) return;
+  Classe.deleteEleve(id);
+  renderEpsClasse();
+  toast('Élève supprimé.');
+}
+
+function importCsv() {
+  const lines = document.getElementById('import-csv').value.trim().split('\n');
+  let count = 0;
+  lines.forEach(l => {
+    const [prenom,nom,classe,poids,email,password] = l.split(';').map(s=>s.trim());
+    if (prenom && email && password) {
+      Classe.addEleve({ prenom, nom:nom||'', classe:classe||'4A', poids:parseFloat(poids)||60, email, password });
+      count++;
+    }
+  });
+  toast(`${count} élève(s) importé(s) !`);
+  renderEpsClasse();
+}
+
+// ── Historique leçons ─────────────────────────────────────────
+function renderEpsHistorique() {
+  const el = document.getElementById('p-eps-historique');
+  const seances = Seances.getAll().slice().reverse();
+
+  el.innerHTML = `
+    <div class="page-title">📋 Historique des leçons</div>
+    ${seances.length===0 ? '<div class="card"><p class="empty">Aucune séance enregistrée.</p></div>' :
+      seances.map(s => {
+        const eleves = Classe.getEleves();
+        const rows = eleves.map(e => {
+          const tours = Seances.getToursEleve(s.id, e.id);
+          const distKm = tours * (s.perimetre||400) / 1000;
+          const kcal   = Math.round((e.poids||60) * distKm);
+          return { e, tours, distKm, kcal };
+        }).filter(r=>r.tours>0);
+
+        return `<div class="card">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h2>${s.date} — <span class="badge badge-b">${s.typeLabel||s.type}</span></h2>
+            <button class="btn btn-xs btn-red" onclick="deleteSeance('${s.id}')">Supprimer</button>
+          </div>
+          ${rows.length===0 ? '<p class="empty" style="padding:6px">Aucun tour enregistré.</p>' : `
+            <table class="tbl tbl-compact">
+              <thead><tr><th>Élève</th><th>Tours</th><th>Distance</th><th>Dépense</th></tr></thead>
+              <tbody>${rows.map(r=>`
+                <tr>
+                  <td><strong>${r.e.prenom}</strong></td>
+                  <td>${r.tours}</td>
+                  <td>${r.distKm.toFixed(2)} km</td>
+                  <td><span class="badge badge-g">${r.kcal} kcal</span></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>`}
+        </div>`;
+      }).join('')}
+  `;
+}
+
+function deleteSeance(id) {
+  if (!confirm('Supprimer cette séance ?')) return;
+  Seances.delete(id);
+  renderEpsHistorique();
+  toast('Séance supprimée.');
+}
+
+// ── Conception leçon ─────────────────────────────────────────
+let _currentSeance = null;
+
+function renderEpsConception() {
+  const el = document.getElementById('p-eps-conception');
+  el.innerHTML = `
+    <div class="page-title">✏️ Concevoir une leçon</div>
+    <div class="card">
+      <h2 style="margin-bottom:16px">Nouvelle séance</h2>
+      <div class="row row-3">
+        <div>
+          <label>Date</label>
+          <input type="date" id="c-date" value="${DateH.today()}">
+        </div>
+        <div>
+          <label>Type de séance</label>
+          <select id="c-type">
+            <option value="echauffement">Échauffement seul</option>
+            <option value="fractionne">Fractionné</option>
+            <option value="1600">4 Tours — 1 600 m</option>
+            <option value="20min">Trottinement 20 min</option>
+            <option value="complet">Séance complète (éch + frac/1600/20min)</option>
+          </select>
+        </div>
+        <div>
+          <label>Périmètre terrain (m)</label>
+          <input type="number" id="c-perimetre" value="400" min="100" max="600">
+        </div>
+      </div>
+      <div class="row row-2" style="margin-top:4px">
+        <div>
+          <label>Objectif de la leçon</label>
+          <textarea id="c-objectif" placeholder="ex : Développer la VMA, découvrir le fractionné 30-30…" style="min-height:50px"></textarea>
+        </div>
+        <div>
+          <label>Consignes / notes</label>
+          <textarea id="c-notes" placeholder="ex : groupes de 4, juges de zone, balises à 70m…" style="min-height:50px"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-g" onclick="creerSeance()">🚀 Créer la séance & démarrer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">📋 Séances à venir</h2>
+      <p class="empty">Les séances créées apparaissent dans l'historique.</p>
+    </div>
+  `;
+}
+
+const TYPE_LABELS = { echauffement:'Échauffement', fractionne:'Fractionné', '1600':'1 600 m (4 tours)', '20min':'Trottinement 20 min', complet:'Séance complète' };
+
+function creerSeance() {
+  const type      = document.getElementById('c-type').value;
+  const date      = document.getElementById('c-date').value;
+  const perimetre = parseInt(document.getElementById('c-perimetre').value)||400;
+  const objectif  = document.getElementById('c-objectif').value.trim();
+  const notes     = document.getElementById('c-notes').value.trim();
+  const seance = Seances.add({ date: DateH.fmt(date), type, typeLabel:TYPE_LABELS[type], perimetre, objectif, notes, createdAt: new Date().toISOString() });
+  _currentSeance = seance;
+  toast(`Séance ${TYPE_LABELS[type]} créée !`);
+  // Navigate to matching page
+  const nav = { echauffement:'eps-echauffement', fractionne:'eps-fractionne', '1600':'eps-1600', '20min':'eps-20min', complet:'eps-echauffement' };
+  navigate(nav[type] || 'eps-echauffement');
+}
+
+// ── Sélecteur séance active ────────────────────────────────────
+function getActiveSeance() {
+  if (_currentSeance) return _currentSeance;
+  const all = Seances.getAll();
+  return all.length ? all[all.length-1] : null;
+}
+
+function seanceSelector(pageId) {
+  const seances = Seances.getAll();
+  if (!seances.length) return '<p class="empty" style="margin-bottom:16px">Crée une séance dans "Concevoir une leçon".</p>';
+  const active = getActiveSeance();
+  return `
+    <div class="card" style="margin-bottom:14px;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:.8rem;font-weight:600;color:var(--mut)">Séance :</span>
+        <select id="sel-seance" onchange="switchSeance(this.value,'${pageId}')" style="flex:1;min-width:180px">
+          ${seances.map(s=>`<option value="${s.id}" ${active&&s.id===active.id?'selected':''}>${s.date} — ${s.typeLabel||s.type}</option>`).join('')}
+        </select>
+        ${active ? `<span class="badge badge-g">${active.perimetre||400} m / tour</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function switchSeance(id, pageId) {
+  _currentSeance = Seances.getById(id);
+  renderPage(pageId);
+}
+
+// ── Échauffement ──────────────────────────────────────────────
+function renderEpsEchauffement() {
+  const el = document.getElementById('p-eps-echauffement');
+  const seance = getActiveSeance();
+  const eleves = Classe.getEleves();
+
+  el.innerHTML = `
+    <div class="page-title">🔥 Échauffement</div>
+    ${seanceSelector('eps-echauffement')}
+    <div class="card">
+      <h2 style="margin-bottom:12px">⏱️ Minuteur échauffement</h2>
+      <div class="timer-display" id="echauf-timer">08:00</div>
+      <div class="timer-controls">
+        <button class="btn btn-g" onclick="startTimer('echauf-timer',8*60,'echauf-timer-state')">▶ Démarrer</button>
+        <button class="btn btn-ghost" onclick="pauseTimer('echauf-timer-state')">⏸ Pause</button>
+        <button class="btn btn-sm btn-ghost" onclick="resetTimer('echauf-timer',8*60)">↺ Reset</button>
+      </div>
+      <div style="margin-top:14px">
+        <label>Durée échauffement (min)</label>
+        <input type="number" id="echauf-duree-custom" value="8" min="3" max="20" style="width:100px">
+        <button class="btn btn-sm btn-ghost" style="margin-left:8px" onclick="resetTimer('echauf-timer',parseInt(document.getElementById('echauf-duree-custom').value)*60)">Appliquer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">📋 Protocole échauffement proposé</h2>
+      <div style="font-size:.85rem;line-height:1.8">
+        <p>🚶 <strong>2 min</strong> — Marche active, mobilisation articulaire</p>
+        <p>🏃 <strong>3 min</strong> — Trottinement léger (allure libre)</p>
+        <p>🤸 <strong>2 min</strong> — Gammes athlétiques (montées de genoux, talons-fesses, pas chassés)</p>
+        <p>💨 <strong>1 min</strong> — 3× accélérations progressives sur 30 m</p>
+      </div>
+      <textarea id="echauf-notes-custom" placeholder="Notes / variantes…" style="margin-top:12px;min-height:50px"></textarea>
+    </div>
+
+    ${seance ? `
+    <div class="card">
+      <div class="card-h">
+        <h2>Tours d'échauffement par élève</h2>
+        <span class="badge badge-b">${seance.perimetre||400} m / tour</span>
+      </div>
+      ${eleves.map(e => {
+        const tours = Seances.getToursEleve(seance.id, e.id);
+        return `
+          <div class="eleve-card">
+            <div>
+              <div class="ec-name">${e.prenom} <span style="font-weight:400;color:var(--mut)">${e.nomFamille||''}</span></div>
+              <div class="ec-sub">${e.poids||60} kg · ${e.classe||''}</div>
+            </div>
+            <div class="ec-right">
+              <div class="counter-wrap">
+                <button class="counter-btn minus" onclick="addTour('${seance.id}','${e.id}',-1,'eps-echauffement')">−</button>
+                <div class="counter-val" id="ct-${seance.id}-${e.id}">${tours}</div>
+                <button class="counter-btn plus"  onclick="addTour('${seance.id}','${e.id}',1,'eps-echauffement')">+</button>
+              </div>
+              <span class="badge badge-g">${Math.round((e.poids||60)*tours*(seance.perimetre||400)/1000)} kcal</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-g" onclick="navigate('eps-fractionne')">Suite : Fractionné →</button>
+    </div>
+  `;
+}
+
+// ── Fractionné ────────────────────────────────────────────────
+let _fracGroups = DB.get('frac_groups') || [];
+
+function renderEpsFractionne() {
+  const el = document.getElementById('p-eps-fractionne');
+  const seance = getActiveSeance();
+  const eleves = Classe.getEleves();
+
+  el.innerHTML = `
+    <div class="page-title">⚡ Fractionné</div>
+    ${seanceSelector('eps-fractionne')}
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">⏱️ Minuteur effort / récupération</h2>
+      <div class="row row-2">
+        <div>
+          <label>Durée effort (s)</label>
+          <input type="number" id="frac-effort" value="30" min="10" max="120">
+        </div>
+        <div>
+          <label>Durée récup. (s)</label>
+          <input type="number" id="frac-recup" value="30" min="10" max="120">
+        </div>
+      </div>
+      <div class="timer-display" id="frac-timer" style="color:var(--o)">00:30</div>
+      <div style="text-align:center;margin-bottom:10px;font-size:.9rem;font-weight:700" id="frac-phase">EFFORT</div>
+      <div class="timer-controls">
+        <button class="btn btn-o" onclick="startFrac()">▶ Démarrer</button>
+        <button class="btn btn-ghost" onclick="pauseFrac()">⏸ Pause</button>
+        <button class="btn btn-sm btn-ghost" onclick="resetFrac()">↺ Reset</button>
+      </div>
+      <div style="text-align:center;margin-top:10px;font-size:.82rem;color:var(--mut)">Série <span id="frac-serie">1</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>Groupes & objectifs de tours</h2>
+        <button class="btn btn-sm btn-g" onclick="addFracGroup()">+ Groupe</button>
+      </div>
+      <p style="font-size:.78rem;color:var(--mut);margin-bottom:12px">Chaque groupe peut avoir un objectif de tours différent selon les niveaux.</p>
+      <div id="frac-groups"></div>
+    </div>
+
+    ${seance ? `
+    <div class="card">
+      <div class="card-h">
+        <h2>Tours réalisés — fractionné</h2>
+        <span class="badge badge-b">${seance.perimetre||400} m / tour</span>
+      </div>
+      ${eleves.map(e => {
+        const tours = Seances.getToursEleve(seance.id, e.id);
+        return `
+          <div class="eleve-card">
+            <div>
+              <div class="ec-name">${e.prenom} <span style="font-weight:400;color:var(--mut)">${e.nomFamille||''}</span></div>
+              <div class="ec-sub">${e.poids||60} kg</div>
+            </div>
+            <div class="ec-right">
+              <div class="counter-wrap">
+                <button class="counter-btn minus" onclick="addTour('${seance.id}','${e.id}',-1,'eps-fractionne')">−</button>
+                <div class="counter-val" id="ct-${seance.id}-${e.id}">${tours}</div>
+                <button class="counter-btn plus" onclick="addTour('${seance.id}','${e.id}',1,'eps-fractionne')">+</button>
+              </div>
+              <span class="badge badge-g">${Math.round((e.poids||60)*tours*(seance.perimetre||400)/1000)} kcal</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-b" onclick="navigate('eps-1600')">Suite : 1 600 m →</button>
+    </div>
+  `;
+
+  renderFracGroups();
+  resetFrac();
+}
+
+function renderFracGroups() {
+  const eleves = Classe.getEleves();
+  const assigned = new Set(_fracGroups.flatMap(g=>g.eleveIds||[]));
+  const unassigned = eleves.filter(e=>!assigned.has(e.id));
+
+  document.getElementById('frac-groups').innerHTML = `
+    ${_fracGroups.map((g,gi)=>`
+      <div style="border:1.5px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <input type="text" value="${g.nom}" onchange="_fracGroups[${gi}].nom=this.value;saveFracGroups()" style="font-weight:700;width:120px">
+          <label style="margin:0;font-size:.78rem">Objectif :</label>
+          <input type="number" value="${g.cible||0}" min="0" max="50" style="width:70px" onchange="_fracGroups[${gi}].cible=parseInt(this.value);saveFracGroups()">
+          <span style="font-size:.78rem;color:var(--mut)">tours</span>
+          <button class="btn btn-xs btn-red" onclick="removeFracGroup(${gi})">✕</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${(g.eleveIds||[]).map(id=>{
+            const e=eleves.find(el=>el.id===id);
+            return e?`<span class="badge badge-g" style="cursor:pointer" onclick="removeFromGroup(${gi},'${id}')">${e.prenom} ✕</span>`:'';
+          }).join('')}
+          <select onchange="addToGroup(${gi},this)" style="font-size:.74rem;padding:2px 6px;border-radius:5px;border:1px solid var(--line)">
+            <option value="">+ Ajouter</option>
+            ${unassigned.map(e=>`<option value="${e.id}">${e.prenom}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('')}
+    ${unassigned.length ? `<p style="font-size:.78rem;color:var(--mut)">Non assignés : ${unassigned.map(e=>e.prenom).join(', ')}</p>` : ''}
+  `;
+}
+
+function addFracGroup() {
+  _fracGroups.push({ nom:'Groupe '+(_fracGroups.length+1), cible:6, eleveIds:[] });
+  saveFracGroups(); renderFracGroups();
+}
+function removeFracGroup(i) { _fracGroups.splice(i,1); saveFracGroups(); renderFracGroups(); }
+function addToGroup(gi, sel) {
+  if (!sel.value) return;
+  if (!_fracGroups[gi].eleveIds) _fracGroups[gi].eleveIds=[];
+  _fracGroups[gi].eleveIds.push(sel.value);
+  saveFracGroups(); renderFracGroups();
+}
+function removeFromGroup(gi, id) {
+  _fracGroups[gi].eleveIds = (_fracGroups[gi].eleveIds||[]).filter(x=>x!==id);
+  saveFracGroups(); renderFracGroups();
+}
+function saveFracGroups() { DB.set('frac_groups', _fracGroups); }
+
+// Fractionné timer
+let _fracTimer=null, _fracPhase='effort', _fracSerie=1;
+function startFrac() {
+  clearInterval(_fracTimer);
+  const effortS = parseInt(document.getElementById('frac-effort').value)||30;
+  const recupS  = parseInt(document.getElementById('frac-recup').value)||30;
+  let remaining = _fracPhase==='effort' ? effortS : recupS;
+  updateFracDisplay(remaining);
+  _fracTimer = setInterval(()=>{
+    remaining--;
+    updateFracDisplay(remaining);
+    if (remaining<=0) {
+      if (_fracPhase==='effort') {
+        _fracPhase='recup';
+        remaining=recupS;
+        document.getElementById('frac-phase').textContent='RÉCUPÉRATION';
+        document.getElementById('frac-timer').style.color='var(--b)';
+      } else {
+        _fracPhase='effort';
+        _fracSerie++;
+        document.getElementById('frac-serie').textContent=_fracSerie;
+        remaining=effortS;
+        document.getElementById('frac-phase').textContent='EFFORT';
+        document.getElementById('frac-timer').style.color='var(--o)';
+      }
+    }
+  },1000);
+}
+function pauseFrac() { clearInterval(_fracTimer); }
+function resetFrac() {
+  clearInterval(_fracTimer);
+  _fracPhase='effort'; _fracSerie=1;
+  const s=parseInt(document.getElementById('frac-effort')?.value)||30;
+  updateFracDisplay(s);
+  const ph=document.getElementById('frac-phase');
+  const se=document.getElementById('frac-serie');
+  if(ph) ph.textContent='EFFORT';
+  if(se) se.textContent='1';
+  const td=document.getElementById('frac-timer');
+  if(td) td.style.color='var(--o)';
+}
+function updateFracDisplay(s) {
+  const el=document.getElementById('frac-timer');
+  if(!el)return;
+  const m=Math.floor(s/60), sec=s%60;
+  el.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+// ── 4 Tours (1 600 m) ─────────────────────────────────────────
+let _lap1600 = {};
+function renderEps1600() {
+  const el = document.getElementById('p-eps-1600');
+  const seance = getActiveSeance();
+  const eleves = Classe.getEleves();
+
+  el.innerHTML = `
+    <div class="page-title">🏟️ 4 Tours — 1 600 m</div>
+    ${seanceSelector('eps-1600')}
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">⏱️ Chronomètre général</h2>
+      <div class="timer-display" id="timer-1600" style="color:var(--b)">00:00</div>
+      <div class="timer-controls">
+        <button class="btn btn-b" onclick="startChrono('timer-1600','chrono-1600-state')">▶ Départ</button>
+        <button class="btn btn-ghost" onclick="pauseTimer('chrono-1600-state')">⏸ Pause</button>
+        <button class="btn btn-sm btn-ghost" onclick="resetChrono('timer-1600','chrono-1600-state')">↺ Reset</button>
+      </div>
+    </div>
+
+    ${seance ? `
+    <div class="card">
+      <div class="card-h">
+        <h2>Suivi par élève</h2>
+        <button class="btn btn-sm btn-b" onclick="renderEps1600()">↺ Actualiser</button>
+      </div>
+      <p style="font-size:.78rem;color:var(--mut);margin-bottom:12px">Cliquer sur "Tour +" à chaque passage. Le chrono enregistre automatiquement le temps.</p>
+      <table class="tbl">
+        <thead><tr><th>Élève</th><th>Tours</th><th>Temps dernier tour</th><th>Vitesse moy. (km/h)</th><th>Dépense</th><th></th></tr></thead>
+        <tbody id="tbl-1600-body">
+          ${eleves.map(e=>{
+            const tours = Seances.getToursEleve(seance.id, e.id);
+            const laps  = (_lap1600[seance.id]||{})[e.id] || [];
+            const lastLap = laps.length ? laps[laps.length-1] : null;
+            const distKm  = tours * (seance.perimetre||400)/1000;
+            const totalSec= laps.reduce((a,l)=>a+l,0);
+            const vitesse  = totalSec>0 ? (distKm/(totalSec/3600)).toFixed(1) : '—';
+            const kcal = Math.round((e.poids||60)*distKm);
+            const fmtSec = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}` : '—';
+            return `<tr id="row-1600-${e.id}">
+              <td><strong>${e.prenom}</strong><br><span style="font-size:.74rem;color:var(--mut)">${e.poids||60} kg</span></td>
+              <td><strong style="font-size:1.2rem">${tours}</strong>/4</td>
+              <td>${fmtSec(lastLap)}</td>
+              <td>${vitesse}</td>
+              <td><span class="badge badge-g">${kcal} kcal</span></td>
+              <td>
+                <button class="btn btn-xs btn-b" onclick="lapEleve1600('${seance.id}','${e.id}')">Tour +</button>
+                <button class="btn btn-xs btn-ghost" onclick="addTour('${seance.id}','${e.id}',-1,'eps-1600')">−</button>
+              </td>
+            </tr>`;}).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-pur" onclick="navigate('eps-20min')">Suite : 20 min →</button>
+    </div>
+  `;
+}
+
+function lapEleve1600(seanceId, eleveId) {
+  // Record current chrono time
+  const el = document.getElementById('timer-1600');
+  const timeParts = el ? el.textContent.split(':') : ['0','0'];
+  const sec = parseInt(timeParts[0])*60 + parseInt(timeParts[1]);
+  if (!_lap1600[seanceId]) _lap1600[seanceId]={};
+  if (!_lap1600[seanceId][eleveId]) _lap1600[seanceId][eleveId]=[];
+  _lap1600[seanceId][eleveId].push(sec);
+  addTour(seanceId, eleveId, 1, 'eps-1600');
+}
+
+// ── Trottinement 20 min ───────────────────────────────────────
+let _abandon20 = DB.get('abandon_20') || {};
+let _marche20  = DB.get('marche_20')  || {};
+
+function renderEps20min() {
+  const el = document.getElementById('p-eps-20min');
+  const seance = getActiveSeance();
+  const eleves = Classe.getEleves();
+
+  el.innerHTML = `
+    <div class="page-title">⏱️ Trottinement 20 min</div>
+    ${seanceSelector('eps-20min')}
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">⏱️ Chronomètre — 20 min</h2>
+      <div class="timer-display" id="timer-20" style="color:var(--pur)">20:00</div>
+      <div class="timer-controls">
+        <button class="btn btn-pur" onclick="startCountdown('timer-20',20*60)">▶ Départ</button>
+        <button class="btn btn-ghost" onclick="pauseTimer('timer-20-state')">⏸ Pause</button>
+        <button class="btn btn-sm btn-ghost" onclick="resetCountdown('timer-20',20*60)">↺ Reset</button>
+      </div>
+    </div>
+
+    ${seance ? `
+    <div class="card">
+      <div class="card-h">
+        <h2>Suivi élèves</h2>
+        <button class="btn btn-sm btn-pur" onclick="renderEps20min()">↺ Actualiser</button>
+      </div>
+      <p style="font-size:.78rem;color:var(--mut);margin-bottom:10px">Tours courus + passages en marche + abandons.</p>
+      <div>
+        ${eleves.map(e=>{
+          const tours   = Seances.getToursEleve(seance.id, e.id);
+          const marches = ((_marche20[seance.id]||{})[e.id])||0;
+          const abandon = ((_abandon20[seance.id]||{})[e.id])||false;
+          const distKm  = tours * (seance.perimetre||400)/1000;
+          const kcal    = Math.round((e.poids||60)*distKm);
+          return `
+            <div class="eleve-card ${abandon?'style="opacity:.5;border-style:dashed"':''}">
+              <div>
+                <div class="ec-name">${e.prenom} <span style="font-weight:400;color:var(--mut)">${e.nomFamille||''}</span>
+                  ${abandon?'<span class="badge badge-red" style="margin-left:6px">Abandon</span>':''}
+                </div>
+                <div class="ec-sub">${e.poids||60} kg · <span style="color:var(--o)">🚶 ${marches}× marche</span></div>
+              </div>
+              <div class="ec-right" style="flex-wrap:wrap;gap:6px">
+                <div class="counter-wrap">
+                  <button class="counter-btn minus" onclick="addTour('${seance.id}','${e.id}',-1,'eps-20min')">−</button>
+                  <div class="counter-val" id="ct-${seance.id}-${e.id}">${tours}</div>
+                  <button class="counter-btn plus" onclick="addTour('${seance.id}','${e.id}',1,'eps-20min')">+</button>
+                </div>
+                <span class="badge badge-g">${kcal} kcal</span>
+                <button class="btn btn-xs btn-o" onclick="addMarche20('${seance.id}','${e.id}')">🚶 Marche</button>
+                <button class="btn btn-xs ${abandon?'btn-g':'btn-red'}" onclick="toggleAbandon20('${seance.id}','${e.id}')">${abandon?'↩ Reprend':'⚑ Abandon'}</button>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-g" onclick="navigate('eps-resume')">Suite : Résumé →</button>
+    </div>
+  `;
+}
+
+function addMarche20(seanceId, eleveId) {
+  if (!_marche20[seanceId]) _marche20[seanceId]={};
+  _marche20[seanceId][eleveId] = ((_marche20[seanceId]||{})[eleveId]||0)+1;
+  DB.set('marche_20', _marche20);
+  renderEps20min();
+}
+function toggleAbandon20(seanceId, eleveId) {
+  if (!_abandon20[seanceId]) _abandon20[seanceId]={};
+  _abandon20[seanceId][eleveId] = !_abandon20[seanceId][eleveId];
+  DB.set('abandon_20', _abandon20);
+  renderEps20min();
+}
+
+// ── Résumé de séance ──────────────────────────────────────────
+function renderEpsResume() {
+  const el = document.getElementById('p-eps-resume');
+  const seance = getActiveSeance();
+  const eleves = Classe.getEleves();
+  if (!seance) { el.innerHTML='<div class="page-title">📊 Résumé</div><div class="card"><p class="empty">Aucune séance active.</p></div>'; return; }
+
+  let totalTours=0, totalKm=0, totalKcal=0;
+  const rows = eleves.map(e=>{
+    const tours  = Seances.getToursEleve(seance.id, e.id);
+    const distKm = tours*(seance.perimetre||400)/1000;
+    const kcal   = Math.round((e.poids||60)*distKm);
+    const marches= ((_marche20[seance.id]||{})[e.id])||0;
+    const abandon= ((_abandon20[seance.id]||{})[e.id])||false;
+    totalTours+=tours; totalKm+=distKm; totalKcal+=kcal;
+    return { e, tours, distKm, kcal, marches, abandon };
+  }).sort((a,b)=>b.tours-a.tours);
+
+  el.innerHTML = `
+    <div class="page-title">📊 Résumé — ${seance.date}</div>
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-box"><div class="sv sv-pur">${totalTours}</div><div class="sl">Tours totaux</div></div>
+      <div class="stat-box"><div class="sv sv-b">${totalKm.toFixed(1)} km</div><div class="sl">Distance cumulée</div></div>
+      <div class="stat-box"><div class="sv sv-g">${totalKcal}</div><div class="sl">Kcal dépensées</div></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">Résultats par élève</h2>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Élève</th><th>Tours</th><th>Distance</th><th>Kcal</th><th>🚶 Marches</th><th>Abandon</th><th>Équivalent</th></tr></thead>
+        <tbody>${rows.map((r,i)=>{
+          const eq = closestFood(r.kcal);
+          const medals=['🥇','🥈','🥉'];
+          return `<tr>
+            <td>${medals[i]||i+1}</td>
+            <td><strong>${r.e.prenom}</strong></td>
+            <td><strong>${r.tours}</strong></td>
+            <td>${r.distKm.toFixed(2)} km</td>
+            <td><span class="badge badge-g">${r.kcal} kcal</span></td>
+            <td>${r.marches>0?`<span class="badge badge-o">${r.marches}×</span>`:'—'}</td>
+            <td>${r.abandon?'<span class="badge badge-red">Oui</span>':'—'}</td>
+            <td><span class="badge badge-o">${eq?.n||'?'}</span></td>
+          </tr>`;}).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-pur" onclick="navigate('eps-bareme')">Suite : Barème →</button>
+    </div>
+  `;
+}
+
+// ── Barème ────────────────────────────────────────────────────
+function renderEpsBareme() {
+  const el = document.getElementById('p-eps-bareme');
+  const eleves = Classe.getEleves();
+  const scores = Bareme.getScores();
+
+  // Compute EPS totals per eleve (cycle)
+  const seances = Seances.getAll();
+  const epsTotals = {};
+  eleves.forEach(e => {
+    let km=0, kcal=0;
+    seances.forEach(s=>{
+      const tours = Seances.getToursEleve(s.id, e.id);
+      const dist  = tours*(s.perimetre||400)/1000;
+      km   += dist;
+      kcal += Math.round((e.poids||60)*dist);
+    });
+    epsTotals[e.id] = { km, kcal };
+  });
+
+  el.innerHTML = `
+    <div class="page-title">🏅 Barème d'évaluation</div>
+
+    <div class="card" style="background:var(--ink);color:#fff">
+      <h2 style="color:var(--g2);margin-bottom:12px">Critères sur 20 pts</h2>
+      <table class="tbl" style="color:#fff">
+        <thead style="background:#111"><tr><th>Critère</th><th>Max</th><th>Répartition</th></tr></thead>
+        <tbody>
+          ${Bareme.criteres.map(c=>`
+            <tr>
+              <td>${c.label}</td>
+              <td><span class="badge badge-g">${c.max} pts</span></td>
+              <td style="font-size:.75rem;color:rgba(255,255,255,.6)">${c.repartition}</td>
+            </tr>`).join('')}
+          <tr style="font-weight:700"><td>TOTAL</td><td><span class="badge badge-o">20 pts</span></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:14px">Notes par élève</h2>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th>Élève</th>
+            ${Bareme.criteres.map(c=>`<th style="font-size:.72rem">${c.label}<br>(/${c.max})</th>`).join('')}
+            <th>Total /20</th>
+          </tr></thead>
+          <tbody>
+            ${eleves.map(e=>{
+              const s = scores[e.id]||{};
+              const total = Bareme.getTotal(e.id);
+              return `<tr>
+                <td><strong>${e.prenom}</strong><br><span style="font-size:.74rem;color:var(--mut)">km: ${(epsTotals[e.id]?.km||0).toFixed(1)} · ${epsTotals[e.id]?.kcal||0} kcal</span></td>
+                ${Bareme.criteres.map(c=>`
+                  <td>
+                    <input type="number" value="${s[c.id]||0}" min="0" max="${c.max}" step="0.5"
+                      style="width:55px;padding:4px 6px;font-size:.82rem;text-align:center"
+                      onchange="Bareme.setScore('${e.id}','${c.id}',parseFloat(this.value)||0);updateBaremeTotal('${e.id}')">
+                  </td>`).join('')}
+                <td>
+                  <strong id="bt-${e.id}" style="font-size:1.1rem;color:${total>=10?'var(--g)':'var(--o)'}">${total}/20</strong>
+                </td>
+              </tr>`;}).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function updateBaremeTotal(eleveId) {
+  const t = Bareme.getTotal(eleveId);
+  const el = document.getElementById('bt-'+eleveId);
+  if (el) { el.textContent=t+'/20'; el.style.color=t>=10?'var(--g)':'var(--o)'; }
+}
+
+// ── Tours helpers ─────────────────────────────────────────────
+function addTour(seanceId, eleveId, delta, pageId) {
+  const current = Seances.getToursEleve(seanceId, eleveId);
+  const next    = Math.max(0, current + delta);
+  Seances.setTourEleve(seanceId, eleveId, next);
+  // Update counter in place without full re-render
+  const ct = document.getElementById(`ct-${seanceId}-${eleveId}`);
+  if (ct) ct.textContent = next;
+  // Update kcal badge inline (optional: just re-render for simplicity)
+  renderPage(pageId);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SVT PAGES
+// ══════════════════════════════════════════════════════════════
+function renderSvtDashboard() {
+  const el = document.getElementById('p-svt-dashboard');
+  const eleves = Classe.getEleves();
+  const seances = Seances.getAll();
+
+  // Aggregate
+  const data = eleves.map(e => {
+    // EPS totals
+    let totalTours=0, totalKm=0, epsKcal=0;
+    seances.forEach(s=>{
+      const tours = Seances.getToursEleve(s.id, e.id);
+      const km    = tours*(s.perimetre||400)/1000;
+      totalTours+=tours; totalKm+=km;
+      epsKcal+=Math.round((e.poids||60)*km);
+    });
+    // Journal
+    const journal = Journal.get(e.id);
+    let foodKcal=0, sportKcal=0;
+    Object.values(journal).forEach(day=>{
+      ['matin','midi','gouter','soir'].forEach(m=>{ foodKcal+=(day[m]||[]).reduce((a,f)=>a+f.kcal,0); });
+      sportKcal+=(day.sport||[]).reduce((a,s)=>a+s.kcal,0);
+    });
+    return { e, totalTours, totalKm, epsKcal, foodKcal, sportKcal, balance: foodKcal-(sportKcal+epsKcal) };
+  });
+
+  const n = data.length || 1;
+  const moyFoodKcal  = Math.round(data.reduce((a,d)=>a+d.foodKcal,0)/n);
+  const moyEpsKcal   = Math.round(data.reduce((a,d)=>a+d.epsKcal,0)/n);
+  const moyTours     = Math.round(data.reduce((a,d)=>a+d.totalTours,0)/n);
+
+  el.innerHTML = `
+    <div class="page-title">📊 Tableau de bord SVT</div>
+
+    <div class="stat-grid stat-grid-4">
+      <div class="stat-box"><div class="sv sv-b">${eleves.length}</div><div class="sl">Élèves</div></div>
+      <div class="stat-box"><div class="sv sv-o">${moyFoodKcal.toLocaleString('fr')}</div><div class="sl">Kcal moy. ingérées</div></div>
+      <div class="stat-box"><div class="sv sv-g">${moyEpsKcal.toLocaleString('fr')}</div><div class="sl">Kcal EPS moy.</div></div>
+      <div class="stat-box"><div class="sv sv-pur">${moyTours}</div><div class="sl">Tours EPS moy.</div></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">Vue individuelle</h2>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Élève</th><th>Tours EPS</th><th>Distance</th><th>Kcal EPS</th><th>Kcal alim.</th><th>Kcal sport perso</th><th>Balance</th><th>≈ Aliment</th></tr></thead>
+          <tbody>${data.map(d=>{
+            const eq = closestFood(d.epsKcal);
+            const bal = d.balance;
+            return `<tr>
+              <td><strong>${d.e.prenom}</strong></td>
+              <td>${d.totalTours}</td>
+              <td>${d.totalKm.toFixed(1)} km</td>
+              <td><span class="badge badge-g">${d.epsKcal} kcal</span></td>
+              <td><span class="badge badge-o">${d.foodKcal.toLocaleString('fr')} kcal</span></td>
+              <td><span class="badge badge-b">${d.sportKcal} kcal</span></td>
+              <td style="font-weight:700;color:${bal>500?'#EF4444':'#16A34A'}">${bal>=0?'+':''}${bal.toLocaleString('fr')}</td>
+              <td><span class="badge badge-o" style="white-space:nowrap">${eq?.n||'?'}</span></td>
+            </tr>`;}).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderSvtNutrition() {
+  const el = document.getElementById('p-svt-nutrition');
+  el.innerHTML = `
+    <div class="page-title">🥗 Repères nutritionnels SVT</div>
+    <div class="card">
+      <div class="row row-2">
+        <div style="background:var(--gbg);border-radius:8px;padding:16px">
+          <p style="font-weight:700;color:var(--g);margin-bottom:10px">✅ À favoriser</p>
+          <ul style="font-size:.84rem;line-height:1.9;padding-left:16px">
+            <li>Légumes variés (à volonté)</li>
+            <li>1 à 2 fruits par jour</li>
+            <li>Eau de source (boisson principale)</li>
+            <li>Oléagineux (noix, amandes…)</li>
+            <li>Céréales complètes, quinoa</li>
+            <li>Bonnes graisses (Ω3, Ω6, Ω9)</li>
+            <li>Poissons gras (saumon, maquereau…)</li>
+          </ul>
+        </div>
+        <div style="background:var(--obg);border-radius:8px;padding:16px">
+          <p style="font-weight:700;color:var(--o);margin-bottom:10px">⚠️ À limiter</p>
+          <ul style="font-size:.84rem;line-height:1.9;padding-left:16px">
+            <li>Aliments à index glycémique élevé<br><span style="font-size:.76rem;color:var(--mut)">(pain blanc, sodas, gâteaux, pizzas, chips…)</span></li>
+            <li>Graisses trans (ultra-transformés)</li>
+            <li>Charcuteries (cancer colorectal)</li>
+            <li>Produits laitiers bovins en excès</li>
+            <li>Produits à base de gluten en excès</li>
+            <li>Excès de sel (hypertension)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin-bottom:12px">🔬 Connexions programme SVT 4ème</h2>
+      <div style="display:grid;gap:8px">
+        ${[
+          ['Digestion & absorption','Transformation des aliments, absorption intestinale des nutriments'],
+          ['Métabolisme énergétique','Respiration cellulaire, ATP, rôle du glucose et des lipides'],
+          ['Système cardio-vasculaire','Adaptation à l\'effort, débit cardiaque, fréquence cardiaque'],
+          ['Homéostasie de la glycémie','Insuline, glucagon, diabète de type II'],
+          ['Maladies de civilisation','Obésité (IMC), facteurs de risque, prévention par l\'activité physique'],
+          ['Microbiote intestinal','Rôle des fibres, bonnes bactéries, probiotiques'],
+        ].map(([t,d])=>`
+          <div style="border-left:4px solid var(--g);padding:10px 14px;background:#fff;border-radius:0 8px 8px 0">
+            <p style="font-weight:700;font-size:.88rem">${t}</p>
+            <p style="font-size:.8rem;color:var(--mut)">${d}</p>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderSvtExport() {
+  const el = document.getElementById('p-svt-export');
+  const eleves = Classe.getEleves();
+  const seances = Seances.getAll();
+
+  let csv = 'Prénom;Classe;Poids;Tours EPS;Km EPS;Kcal EPS;Kcal Alim.;Kcal Sport perso;Balance\n';
+  eleves.forEach(e => {
+    let totalTours=0, totalKm=0, epsKcal=0;
+    seances.forEach(s=>{
+      const t=Seances.getToursEleve(s.id,e.id);
+      const km=t*(s.perimetre||400)/1000;
+      totalTours+=t; totalKm+=km; epsKcal+=Math.round((e.poids||60)*km);
+    });
+    const j = Journal.get(e.id);
+    let foodKcal=0, sportKcal=0;
+    Object.values(j).forEach(day=>{
+      ['matin','midi','gouter','soir'].forEach(m=>{ foodKcal+=(day[m]||[]).reduce((a,f)=>a+f.kcal,0); });
+      sportKcal+=(day.sport||[]).reduce((a,s)=>a+s.kcal,0);
+    });
+    csv += `${e.prenom};${e.classe};${e.poids};${totalTours};${totalKm.toFixed(2)};${epsKcal};${foodKcal};${sportKcal};${foodKcal-(sportKcal+epsKcal)}\n`;
+  });
+
+  el.innerHTML = `
+    <div class="page-title">📥 Export données</div>
+    <div class="card">
+      <h2 style="margin-bottom:10px">Export CSV (copier → coller dans Excel / Calc)</h2>
+      <textarea id="export-csv-area" style="font-family:monospace;font-size:.76rem;min-height:180px" readonly>${csv}</textarea>
+      <div style="margin-top:10px;display:flex;gap:10px">
+        <button class="btn btn-g" onclick="copyExport()">📋 Copier</button>
+        <button class="btn btn-b" onclick="downloadExport()">⬇ Télécharger .csv</button>
+      </div>
+    </div>
+  `;
+}
+
+function copyExport() {
+  const ta = document.getElementById('export-csv-area');
+  navigator.clipboard.writeText(ta.value).then(()=>toast('Données copiées !'));
+}
+function downloadExport() {
+  const csv = document.getElementById('export-csv-area').value;
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='defi_burger_export.csv'; a.click();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TIMER UTILITIES
+// ══════════════════════════════════════════════════════════════
+const _timers = {};
+
+function startTimer(displayId, totalSec, stateKey) {
+  clearInterval(_timers[stateKey]);
+  let remaining = totalSec;
+  updateTimerDisplay(displayId, remaining);
+  _timers[stateKey] = setInterval(()=>{
+    remaining--;
+    updateTimerDisplay(displayId, remaining);
+    if (remaining<=0) { clearInterval(_timers[stateKey]); toast('⏰ Temps écoulé !'); }
+  }, 1000);
+}
+
+function pauseTimer(stateKey) { clearInterval(_timers[stateKey]); }
+
+function resetTimer(displayId, totalSec) {
+  pauseTimer(displayId+'-state');
+  updateTimerDisplay(displayId, totalSec);
+}
+
+function updateTimerDisplay(id, sec) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const m = Math.floor(sec/60), s = sec%60;
+  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// Chrono (count up)
+let _chronoSec = 0;
+function startChrono(displayId, stateKey) {
+  clearInterval(_timers[stateKey]);
+  _timers[stateKey] = setInterval(()=>{
+    _chronoSec++;
+    updateTimerDisplay(displayId, _chronoSec);
+  }, 1000);
+}
+function resetChrono(displayId, stateKey) {
+  clearInterval(_timers[stateKey]);
+  _chronoSec = 0;
+  updateTimerDisplay(displayId, 0);
+}
+
+// Countdown
+let _countdownSec = {};
+function startCountdown(displayId, totalSec) {
+  clearInterval(_timers[displayId+'-cd']);
+  _countdownSec[displayId] = _countdownSec[displayId] ?? totalSec;
+  _timers[displayId+'-cd'] = setInterval(()=>{
+    _countdownSec[displayId]--;
+    updateTimerDisplay(displayId, _countdownSec[displayId]);
+    if (_countdownSec[displayId]<=0) { clearInterval(_timers[displayId+'-cd']); toast('⏰ 20 minutes écoulées !'); }
+  }, 1000);
+}
+function resetCountdown(displayId, totalSec) {
+  clearInterval(_timers[displayId+'-cd']);
+  _countdownSec[displayId] = totalSec;
+  updateTimerDisplay(displayId, totalSec);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+(function init() {
+  const user = Auth.current();
+  if (user) bootApp(user);
+  // Keyboard submit on auth
+  document.addEventListener('keydown', e=>{
+    // enter key handled by new auth system
+  });
+  // Close food dropdown on outside click
+  document.addEventListener('click', e=>{
+    const dd = document.getElementById('mf-dropdown');
+    if (dd && !dd.contains(e.target) && e.target.id!=='mf-search') dd.style.display='none';
+  });
+})();
+
+
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function makeSlug(p, n) {
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+  return norm(p) + '.' + norm(n);
+}
+
+const AuthNew = {
+  getProfs()      { return DB.get('profs') || { eps:'1999', svt:'1999' }; },
+  saveProfs(p)    { DB.set('profs', p); },
+  getAdminCode()  { return DB.get('admin_code') || '1999'; },
+  setAdminCode(c) { DB.set('admin_code', c); },
+};
+
+// Patch Auth.loginSlug (login by prenom.nom slug)
+Auth.loginSlug = function(slug, password) {
+  const accounts = this.getAccounts();
+  const user = accounts.find(a => {
+    const s = a.slug || (a.email ? a.email.split('@')[0] : null);
+    return s === slug && a.password === password;
+  });
+  if (!user) return null;
+  const session = { ...user, loginAt: Date.now() };
+  DB.set('session', session);
+  return session;
+};
+
+// Ensure all eleves have a slug + ddn on load
+(function patchEleves() {
+  const eleves = DB.get('eleves') || [];
+  let changed = false;
+  eleves.forEach(e => {
+    if (!e.slug) {
+      e.slug = makeSlug(e.prenom || '', e.nomFamille || e.nom || '');
+      changed = true;
+    }
+    if (!e.ddn && e.password) e.ddn = e.password;
+  });
+  if (changed) DB.set('eleves', eleves);
+})();
+
+// ── Auth navigation ────────────────────────────────────────────
+let _roleSelected = null;
+
+function showElevePanel() {
+  _hideAllSteps();
+  document.getElementById('auth-eleve').style.display = 'block';
+  setTimeout(() => document.getElementById('inp-slug')?.focus(), 80);
+}
+function showProfPanel(role) {
+  _roleSelected = role;
+  _hideAllSteps();
+  document.getElementById('prof-title').textContent = role === 'eps' ? '🏃 Prof. EPS' : '🔬 Prof. SVT';
+  document.getElementById('auth-prof').style.display = 'block';
+  setTimeout(() => document.getElementById('inp-ppass')?.focus(), 80);
+}
+function backToStep1() {
+  _hideAllSteps();
+  document.getElementById('auth-step1').style.display = 'block';
+}
+function _hideAllSteps() {
+  ['auth-step1','auth-eleve','auth-prof','auth-admin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+// Secret: 10 clics burger → admin
+(function() {
+  let clk = 0, tmr = null;
+  document.getElementById('logo-secret').addEventListener('click', () => {
+    clk++; clearTimeout(tmr); tmr = setTimeout(() => clk = 0, 3000);
+    if (clk >= 10) { clk = 0; _hideAllSteps(); document.getElementById('auth-admin').style.display = 'block'; }
+  });
+})();
+
+// ── Login functions ────────────────────────────────────────────
+function doLoginEleve() {
+  const slug = document.getElementById('inp-slug').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-epass').value;
+  const err  = document.getElementById('err-eleve');
+  let user = Auth.loginSlug(slug, pass);
+  if (!user) {
+    // Direct fallback on eleves list
+    const eleves = DB.get('eleves') || [];
+    const e = eleves.find(x => x.slug === slug && x.password === pass);
+    if (!e) { err.style.display = 'block'; return; }
+    user = { ...e, role:'eleve', loginAt: Date.now() };
+    DB.set('session', user);
+  }
+  err.style.display = 'none';
+  bootApp(user);
+  if (user.password === user.ddn) {
+    setTimeout(() => { navigate('e-mdp'); toast('Bienvenue ! Pense à changer ton mot de passe 👇'); }, 400);
+  }
+}
+
+function doLoginProf() {
+  const role  = _roleSelected;
+  const pass  = document.getElementById('inp-ppass').value;
+  const err   = document.getElementById('err-prof');
+  const profs = AuthNew.getProfs();
+  if (profs[role] !== pass) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  document.getElementById('inp-ppass').value = '';
+  const sess = { id:'prof_'+role, role, nom: role==='eps'?'Prof. EPS':'Prof. SVT', loginAt: Date.now() };
+  DB.set('session', sess);
+  const isFirst = pass === '1999' && !DB.get('prof_changed_'+role);
+  bootApp(sess);
+  if (isFirst) setTimeout(() => toast('1ère connexion : changez votre code dans ⚙️ Paramètres !'), 600);
+}
+
+function doLoginAdmin() {
+  const pass = document.getElementById('inp-apass').value;
+  const err  = document.getElementById('err-admin');
+  if (pass !== AuthNew.getAdminCode()) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  document.getElementById('inp-apass').value = '';
+  const sess = { id:'admin', role:'admin', nom:'Administrateur', loginAt: Date.now() };
+  DB.set('session', sess);
+  bootApp(sess);
+}
+
+function notifOubli() {
+  const slug = document.getElementById('inp-slug').value.trim();
+  const n = DB.get('mdp_notifs') || [];
+  if (slug) { n.push({ slug, date: new Date().toLocaleDateString('fr') }); DB.set('mdp_notifs', n); }
+  toast("Notification envoyée à l'enseignant !");
+}
+
+// Enter key handler for auth panels
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const ePanel = document.getElementById('auth-eleve');
+  const pPanel = document.getElementById('auth-prof');
+  const aPanel = document.getElementById('auth-admin');
+  if (ePanel && ePanel.style.display !== 'none') doLoginEleve();
+  else if (pPanel && pPanel.style.display !== 'none') doLoginProf();
+  else if (aPanel && aPanel.style.display !== 'none') doLoginAdmin();
+});
+
+// ── Override doLogout ──────────────────────────────────────────
+doLogout = function() {
+  Auth.logout();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').classList.add('active');
+  backToStep1();
+};
+
+// ── Sidebar patches ────────────────────────────────────────────
+const _origBS = buildSidebar;
+buildSidebar = function(role) {
+  _origBS(role);
+  const sb = document.getElementById('sidebar');
+  if (role === 'eps') {
+    sb.innerHTML += '<div class="nav-section">Paramètres</div><a href="#" onclick="navigate(\'eps-params\');return false"><span class="icon">⚙️</span> Changer mon code</a>';
+  } else if (role === 'svt') {
+    sb.innerHTML += '<div class="nav-section">Paramètres</div><a href="#" onclick="navigate(\'svt-params\');return false"><span class="icon">⚙️</span> Changer mon code</a>';
+  } else if (role === 'eleve') {
+    sb.innerHTML += '<div class="nav-section">Compte</div><a href="#" onclick="navigate(\'e-mdp\');return false"><span class="icon">🔑</span> Mon mot de passe</a>';
+  } else if (role === 'admin') {
+    sb.innerHTML = '<div class="nav-section">Administration</div><a href="#" onclick="navigate(\'admin\');return false"><span class="icon">🔐</span> Panneau admin</a>';
+  }
+};
+
+const _origDR = defaultRoute;
+defaultRoute = function(role) {
+  if (role === 'admin') return 'admin';
+  return _origDR(role);
+};
+
+const _origRP = renderPage;
+renderPage = function(id) {
+  if (id === 'e-mdp')      { renderEleveMdp(Auth.current()); return; }
+  if (id === 'admin')      { renderAdmin(); return; }
+  if (id === 'eps-params') { renderProfParams('eps'); return; }
+  if (id === 'svt-params') { renderProfParams('svt'); return; }
+  _origRP(id);
+};
+
+const _origBA = bootApp;
+bootApp = function(user) {
+  _origBA(user);
+  if (user.role === 'admin') {
+    const tb = document.getElementById('tb-user');
+    if (tb) tb.innerHTML += ' <span style="background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;padding:1px 8px;border-radius:20px;font-size:.7rem;font-weight:800">ADMIN</span>';
+  }
+};
+
+// ── Page: changement MDP élève ─────────────────────────────────
+function renderEleveMdp(user) {
+  if (!user) return;
+  const el = document.getElementById('p-e-mdp');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="page-title">🔑 Changer mon mot de passe</div>
+    <div class="card" style="max-width:400px">
+      <p style="font-size:.82rem;color:var(--mut);margin-bottom:14px">Choisis un mot de passe personnel que tu n'oublieras pas.</p>
+      <label>Mot de passe actuel</label>
+      <input type="password" id="mdp-old" placeholder="••••••••">
+      <label>Nouveau mot de passe</label>
+      <input type="password" id="mdp-new" placeholder="Minimum 4 caractères">
+      <label>Confirmer</label>
+      <input type="password" id="mdp-conf" placeholder="••••••••">
+      <button class="btn btn-g btn-full" style="margin-top:12px" onclick="saveMdpEleve('${user.id}')">💾 Enregistrer</button>
+    </div>`;
+}
+function saveMdpEleve(uid) {
+  const old  = document.getElementById('mdp-old').value;
+  const nw   = document.getElementById('mdp-new').value;
+  const conf = document.getElementById('mdp-conf').value;
+  const list = Classe.getEleves();
+  const e    = list.find(x => x.id === uid);
+  if (!e || e.password !== old) { toast('Mot de passe actuel incorrect.', 'err'); return; }
+  if (nw.length < 4)            { toast('Minimum 4 caractères.', 'err'); return; }
+  if (nw !== conf)              { toast('Les mots de passe ne correspondent pas.', 'err'); return; }
+  Classe.updateEleve(uid, { password: nw });
+  DB.set('session', { ...Auth.current(), password: nw });
+  toast('✓ Mot de passe modifié !');
+  ['mdp-old','mdp-new','mdp-conf'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ── Page: paramètres enseignant ────────────────────────────────
+function renderProfParams(role) {
+  const el = document.getElementById('p-eps-bareme');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="page-title">⚙️ Changer mon code d'accès</div>
+    <div class="card" style="max-width:380px">
+      <label>Code actuel</label>
+      <input type="password" id="par-old" placeholder="••••••••">
+      <label>Nouveau code</label>
+      <input type="password" id="par-new" placeholder="Minimum 4 caractères">
+      <label>Confirmer</label>
+      <input type="password" id="par-conf" placeholder="••••••••">
+      <button class="btn btn-g btn-full" style="margin-top:12px" onclick="saveProfCode('${role}')">💾 Enregistrer</button>
+    </div>`;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+}
+function saveProfCode(role) {
+  const old  = document.getElementById('par-old').value;
+  const nw   = document.getElementById('par-new').value;
+  const conf = document.getElementById('par-conf').value;
+  const p    = AuthNew.getProfs();
+  if (p[role] !== old) { toast('Code actuel incorrect.', 'err'); return; }
+  if (nw.length < 4)   { toast('Minimum 4 caractères.', 'err'); return; }
+  if (nw !== conf)      { toast('Les codes ne correspondent pas.', 'err'); return; }
+  p[role] = nw;
+  AuthNew.saveProfs(p);
+  DB.set('prof_changed_' + role, true);
+  toast('Code modifié !');
+  navigate(role === 'eps' ? 'eps-classe' : 'svt-dashboard');
+}
+
+// ── MDP reset (admin/EPS) ──────────────────────────────────────
+function openMdpReset(eleveId) {
+  const e = Classe.getEleves().find(x => x.id === eleveId);
+  if (!e) return;
+  document.getElementById('mdpr-id').value   = eleveId;
+  document.getElementById('mdpr-title').textContent = 'MDP — ' + e.prenom + ' ' + (e.nomFamille || e.nom || '');
+  document.getElementById('mdpr-info').textContent  = 'Identifiant : ' + (e.slug || makeSlug(e.prenom, e.nomFamille || e.nom || '')) + ' · MDP initial : ' + (e.ddn || '?');
+  document.getElementById('mdpr-pass').value  = '';
+  openModal('modal-mdp-reset');
+}
+function openMdpResetBySlug(slug) {
+  const e = Classe.getEleves().find(x => x.slug === slug);
+  if (e) openMdpReset(e.id);
+}
+function applyMdpReset() {
+  const uid = document.getElementById('mdpr-id').value;
+  const nw  = document.getElementById('mdpr-pass').value.trim();
+  const e   = Classe.getEleves().find(x => x.id === uid);
+  if (!e) return;
+  Classe.updateEleve(uid, { password: nw || e.ddn });
+  closeModal('modal-mdp-reset');
+  toast(nw ? 'MDP personnalisé !' : 'MDP réinitialisé à la date de naissance !');
+}
+
+// ── Page: admin ────────────────────────────────────────────────
+function renderAdmin() {
+  const el = document.getElementById('p-admin');
+  if (!el) return;
+  const eleves = Classe.getEleves();
+  const notifs = DB.get('mdp_notifs') || [];
+  el.innerHTML = `
+    <div class="page-title">🔐 Panneau administrateur</div>
+
+    ${notifs.length ? `<div class="card" style="border-left:4px solid var(--o)">
+      <h2 style="color:var(--o);margin-bottom:10px">🔔 Demandes MDP oublié (${notifs.length})</h2>
+      ${notifs.map((n,i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:.82rem">
+          <span><strong>${n.slug}</strong> — ${n.date}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-xs btn-pur" onclick="openMdpResetBySlug('${n.slug}')">🔑 Réinitialiser</button>
+            <button class="btn btn-xs btn-ghost" onclick="rmNotifAdmin(${i})">✓ Vu</button>
+          </div>
+        </div>`).join('')}
+    </div>` : '<div class="card"><p class="empty">Aucune demande de réinitialisation en attente.</p></div>'}
+
+    <div class="card">
+      <div class="card-h">
+        <h2>👥 Élèves (${eleves.length})</h2>
+        <button class="btn btn-g btn-sm" onclick="openEleveModal()">+ Ajouter</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Identifiant</th><th>Classe</th><th>MDP initial</th><th>Actions</th></tr></thead>
+          <tbody>${eleves.map(e => `
+            <tr>
+              <td><strong>${e.prenom}</strong></td>
+              <td>${e.nomFamille||e.nom||'—'}</td>
+              <td><code style="font-size:.74rem">${e.slug||makeSlug(e.prenom,e.nomFamille||e.nom||'')}</code></td>
+              <td><span class="badge badge-b">${e.classe||'—'}</span></td>
+              <td><code style="font-size:.74rem">${e.ddn||'—'}</code></td>
+              <td>
+                <button class="btn btn-xs btn-pur" onclick="openMdpReset('${e.id}')">🔑 MDP</button>
+                <button class="btn btn-xs btn-red" onclick="if(confirm('Supprimer cet élève ?')){Classe.deleteEleve('${e.id}');renderAdmin();}">✕</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">⚙️ Codes d'accès enseignants</h2>
+      <div class="row row-2">
+        <div>
+          <label>Nouveau code EPS</label>
+          <input type="password" id="a-eps-in" placeholder="Nouveau code">
+          <button class="btn btn-g btn-sm" style="margin-top:6px" onclick="adminSetCode('eps','a-eps-in')">Changer EPS</button>
+        </div>
+        <div>
+          <label>Nouveau code SVT</label>
+          <input type="password" id="a-svt-in" placeholder="Nouveau code">
+          <button class="btn btn-b btn-sm" style="margin-top:6px" onclick="adminSetCode('svt','a-svt-in')">Changer SVT</button>
+        </div>
+      </div>
+      <label style="margin-top:12px">Nouveau code administrateur</label>
+      <div style="display:flex;gap:8px">
+        <input type="password" id="a-adm-in" placeholder="Nouveau code admin" style="flex:1">
+        <button class="btn btn-pur btn-sm" onclick="adminSetCode('admin','a-adm-in')">Changer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:8px">💡 Import CSV élèves</h2>
+      <p style="font-size:.76rem;color:var(--mut);margin-bottom:7px">Format : <code>Prénom;Nom;Classe;Poids;JJMMAAAA</code> (1 par ligne)</p>
+      <textarea id="adm-csv-in" style="font-family:monospace;font-size:.74rem;min-height:80px" placeholder="Jules;Martin;4A;52;15092010"></textarea>
+      <button class="btn btn-b btn-sm" style="margin-top:7px" onclick="adminImportCsv()">📥 Importer</button>
+    </div>`;
+}
+
+function rmNotifAdmin(i) {
+  const n = DB.get('mdp_notifs') || [];
+  n.splice(i,1); DB.set('mdp_notifs', n); renderAdmin();
+}
+function adminSetCode(role, inputId) {
+  const v = document.getElementById(inputId)?.value.trim();
+  if (!v || v.length < 4) { toast('Minimum 4 caractères.', 'err'); return; }
+  if (role === 'admin') { AuthNew.setAdminCode(v); }
+  else { const p = AuthNew.getProfs(); p[role]=v; AuthNew.saveProfs(p); DB.set('prof_changed_'+role, true); }
+  toast('Code modifié !');
+  document.getElementById(inputId).value = '';
+  renderAdmin();
+}
+function adminImportCsv() {
+  const lines = document.getElementById('adm-csv-in').value.trim().split('\n');
+  let c = 0;
+  lines.forEach(l => {
+    const [prenom,nom,classe,poids,ddn] = l.split(';').map(s=>s.trim());
+    if (prenom && nom && ddn) {
+      const slug = makeSlug(prenom, nom);
+      const id   = 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
+      const list = Classe.getEleves();
+      list.push({ id, role:'eleve', prenom, nomFamille:nom, nom, classe:classe||'4A', poids:parseFloat(poids)||60, ddn, slug, password:ddn });
+      DB.set('eleves', list);
+      const accounts = Auth.getAccounts();
+      accounts.push({ id, email:slug, password:ddn, role:'eleve', nom:prenom+' '+nom, prenom, nomFamille:nom, classe:classe||'4A', poids:parseFloat(poids)||60, ddn, slug });
+      Auth.saveAccounts(accounts);
+      c++;
+    }
+  });
+  toast(c + ' élève(s) importé(s) !');
+  renderAdmin();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+const _existingUser = Auth.current();
+if (_existingUser) {
+  bootApp(_existingUser);
+} else {
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('auth-step1').style.display = 'block';
+}
+
+</script>
+</body>
+</html>
